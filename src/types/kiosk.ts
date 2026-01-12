@@ -31,6 +31,33 @@ export interface BoardState {
   active: ActiveSession[];
 }
 
+// Message types for admin-managed messages
+export interface KioskMessage {
+  id: string;
+  title: string;
+  body: string;
+  target_type: 'all' | 'role' | 'employee';
+  target_value: string | null;
+  priority: number;
+  valid_from: string;
+  valid_to: string;
+  enabled: boolean;
+}
+
+// Worker Kiosk States
+export type WorkerKioskState = 
+  | 'IDLE'
+  | 'CARD_DETECTED'
+  | 'PROCESSING'
+  | 'RESULT'
+  | 'MESSAGES';
+
+export interface WorkerKioskResult {
+  type: 'success' | 'error';
+  message: string;
+  detail: string;
+}
+
 // WebSocket Message Types
 export type WSMessageType = 
   | 'status'
@@ -38,7 +65,14 @@ export type WSMessageType =
   | 'attendance_update'
   | 'ping'
   | 'pong'
-  | 'request_full_state';
+  | 'request_full_state'
+  | 'rfid_detected'
+  | 'login_success'
+  | 'login_error'
+  | 'logout_success'
+  | 'logout_error'
+  | 'timeout'
+  | 'processing';
 
 export interface WSStatusMessage {
   type: 'status';
@@ -67,11 +101,56 @@ export interface WSRequestFullStateMessage {
   type: 'request_full_state';
 }
 
+export interface WSRfidDetectedMessage {
+  type: 'rfid_detected';
+  rfid_uid: string;
+  employee?: Employee;
+}
+
+export interface WSLoginSuccessMessage {
+  type: 'login_success';
+  employee: Employee;
+  messages?: KioskMessage[];
+}
+
+export interface WSLoginErrorMessage {
+  type: 'login_error';
+  reason: string;
+  details?: string;
+}
+
+export interface WSLogoutSuccessMessage {
+  type: 'logout_success';
+  employee: Employee;
+}
+
+export interface WSLogoutErrorMessage {
+  type: 'logout_error';
+  reason: string;
+  details?: string;
+}
+
+export interface WSTimeoutMessage {
+  type: 'timeout';
+  rfid_uid: string;
+}
+
+export interface WSProcessingMessage {
+  type: 'processing';
+}
+
 export type WSServerMessage = 
   | WSStatusMessage 
   | WSFullStateMessage 
   | WSAttendanceUpdateMessage
-  | WSPongMessage;
+  | WSPongMessage
+  | WSRfidDetectedMessage
+  | WSLoginSuccessMessage
+  | WSLoginErrorMessage
+  | WSLogoutSuccessMessage
+  | WSLogoutErrorMessage
+  | WSTimeoutMessage
+  | WSProcessingMessage;
 
 export type WSClientMessage = 
   | WSPingMessage 

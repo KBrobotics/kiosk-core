@@ -22,9 +22,9 @@ const CONFIG = {
   POLLING_INTERVAL: 5000,
   
   // Timeouts (in milliseconds)
-  PENDING_UID_TIMEOUT: 10000,
-  RESULT_DISPLAY_TIMEOUT: 4000,
-  MESSAGES_DISPLAY_TIMEOUT: 15000,
+  PENDING_UID_TIMEOUT: 15000,      // 15 seconds to press button after card scan
+  RESULT_DISPLAY_TIMEOUT: 4000,    // 4 seconds to show success/error
+  MESSAGES_DISPLAY_TIMEOUT: 15000, // 15 seconds to read messages
   
   // HID RFID
   HID_RFID_ENABLED: true,
