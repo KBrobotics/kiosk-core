@@ -38,10 +38,11 @@ export interface KioskMessage {
   body: string;
   target_type: 'all' | 'role' | 'employee';
   target_value: string | null;
-  priority: number;
-  valid_from: string;
-  valid_to: string;
-  enabled: boolean;
+  priority: number; // 1 = high, 2 = medium, 3 = low
+  valid_from?: string;
+  valid_to?: string;
+  enabled?: boolean;
+  created_at?: string;
 }
 
 // Worker Kiosk States
