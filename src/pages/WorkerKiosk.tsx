@@ -50,7 +50,7 @@ const WorkerKiosk = () => {
     setLoading(false);
   }, []);
 
-  // Handle RFID detection
+  // Handle RFID detection - fetch employee info and messages
   const handleRfidDetected = useCallback(async (uid: string) => {
     if (currentState !== 'IDLE') {
       console.log('[Worker] Ignoring RFID scan - not in IDLE state');
@@ -60,12 +60,61 @@ const WorkerKiosk = () => {
     console.log('[Worker] RFID detected:', uid);
     setPendingUid(uid);
     
-    // Try to get employee info (for demo mode)
+    // Fetch employee info and messages
     if (KIOSK_CONFIG.DEMO_MODE) {
       const response = await kioskApi.getActiveEmployees();
       if (response.success && response.data) {
         const employee = response.data.find(e => e.rfid_uid === uid);
         setPendingEmployee(employee || null);
+        
+        // Fetch messages for this employee (demo mode - simulated admin messages)
+        const employeeMessages: KioskMessage[] = [];
+        
+        // Simulated messages that would come from admin panel
+        if (employee) {
+          // Personal messages for specific employee
+          employeeMessages.push({
+            id: 'msg-personal-1',
+            title: 'New Safety Shoes Available',
+            body: 'Your new safety shoes are ready for pickup at the office. Please collect them before your next shift.',
+            target_type: 'employee',
+            target_value: employee.id,
+            priority: 2,
+            valid_from: new Date().toISOString(),
+            valid_to: new Date(Date.now() + 86400000 * 7).toISOString(),
+            enabled: true
+          });
+          
+          // Role-based message
+          if (employee.role === 'Technician') {
+            employeeMessages.push({
+              id: 'msg-role-1',
+              title: 'Medical Checkup Required',
+              body: 'All technicians must complete their annual medical checkup by end of month. Schedule with HR.',
+              target_type: 'role',
+              target_value: 'Technician',
+              priority: 3,
+              valid_from: new Date().toISOString(),
+              valid_to: new Date(Date.now() + 86400000 * 14).toISOString(),
+              enabled: true
+            });
+          }
+        }
+        
+        // General announcement for everyone
+        employeeMessages.push({
+          id: 'msg-all-1',
+          title: 'Fire Drill Today',
+          body: 'Fire drill scheduled for 14:00. Please familiarize yourself with evacuation routes.',
+          target_type: 'all',
+          target_value: null,
+          priority: 1,
+          valid_from: new Date().toISOString(),
+          valid_to: new Date(Date.now() + 86400000).toISOString(),
+          enabled: true
+        });
+        
+        setMessages(employeeMessages);
       }
     }
     
@@ -94,43 +143,8 @@ const WorkerKiosk = () => {
         });
         setCurrentState('RESULT');
 
-        // Simulate messages for demo
-        if (KIOSK_CONFIG.DEMO_MODE) {
-          const demoMessages: KioskMessage[] = [
-            {
-              id: '1',
-              title: 'Team Meeting Today',
-              body: 'Don\'t forget the weekly team meeting at 10:00 AM in Conference Room B.',
-              target_type: 'all',
-              target_value: null,
-              priority: 2,
-              valid_from: new Date().toISOString(),
-              valid_to: new Date(Date.now() + 86400000).toISOString(),
-              enabled: true
-            },
-            {
-              id: '2',
-              title: 'Safety Reminder',
-              body: 'Please remember to wear safety equipment in designated areas.',
-              target_type: 'all',
-              target_value: null,
-              priority: 3,
-              valid_from: new Date().toISOString(),
-              valid_to: new Date(Date.now() + 86400000).toISOString(),
-              enabled: true
-            }
-          ];
-          setMessages(demoMessages);
-        }
-
-        // Show result, then messages if any, then idle
-        setTimeout(() => {
-          if (messages.length > 0 || KIOSK_CONFIG.DEMO_MODE) {
-            setCurrentState('MESSAGES');
-          } else {
-            resetToIdle();
-          }
-        }, KIOSK_CONFIG.RESULT_DISPLAY_TIMEOUT);
+        // Show result briefly then reset
+        setTimeout(resetToIdle, KIOSK_CONFIG.RESULT_DISPLAY_TIMEOUT);
       } else {
         setResult({
           type: 'error',
@@ -272,33 +286,44 @@ const WorkerKiosk = () => {
           </div>
         )}
 
-        {/* CARD_DETECTED State */}
+        {/* CARD_DETECTED State - Shows messages + login/logout buttons */}
         {currentState === 'CARD_DETECTED' && (
-          <Card className="p-8 max-w-md w-full bg-card border-primary/30 kiosk-glow">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center h-20 w-20 rounded-full bg-primary/20 mb-4">
-                <Fingerprint className="h-10 w-10 text-primary" />
+          <Card className="p-6 max-w-2xl w-full bg-card border-primary/30 kiosk-glow">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary/20">
+                  <Fingerprint className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">
+                    {pendingEmployee?.name || 'Card Detected'}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {pendingEmployee?.role || `ID: ${pendingUid?.substring(0, 8)}...`}
+                  </p>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-foreground">
-                Card Detected
-              </h2>
-              {pendingEmployee ? (
-                <p className="text-muted-foreground">{pendingEmployee.name}</p>
-              ) : (
-                <p className="text-muted-foreground">ID: {pendingUid?.substring(0, 8)}...</p>
-              )}
+              
+              <CountdownTimer
+                durationMs={KIOSK_CONFIG.PENDING_UID_TIMEOUT}
+                onComplete={handleTimeout}
+                variant="circle"
+                showSeconds={false}
+              />
             </div>
 
-            <CountdownTimer
-              durationMs={KIOSK_CONFIG.PENDING_UID_TIMEOUT}
-              onComplete={handleTimeout}
-              className="mb-6"
-            />
+            {/* Messages Section */}
+            {messages.length > 0 && (
+              <div className="mb-6">
+                <MessageDisplay messages={messages} />
+              </div>
+            )}
 
+            {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-4">
               <Button
                 size="lg"
-                className="h-20 text-lg bg-success hover:bg-success/90"
+                className="h-20 text-lg bg-success hover:bg-success/90 text-white"
                 onClick={handleLogin}
                 disabled={loading}
               >
@@ -319,7 +344,10 @@ const WorkerKiosk = () => {
             </div>
 
             <p className="text-center text-sm text-muted-foreground mt-4">
-              Press GREEN to log in or RED to log out
+              {messages.length > 0 
+                ? 'Read your messages, then press GREEN to log in or RED to log out'
+                : 'Press GREEN to log in or RED to log out'
+              }
             </p>
           </Card>
         )}
@@ -362,34 +390,6 @@ const WorkerKiosk = () => {
           </div>
         )}
 
-        {/* MESSAGES State */}
-        {currentState === 'MESSAGES' && (
-          <Card className="p-8 max-w-lg w-full bg-card border-primary/30">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <MessageSquare className="h-6 w-6 text-primary" />
-              <span className="text-lg font-medium text-foreground">
-                {messages.length} message{messages.length !== 1 ? 's' : ''}
-              </span>
-            </div>
-            
-            <MessageDisplay messages={messages} className="mb-6" />
-            
-            <CountdownTimer
-              durationMs={KIOSK_CONFIG.MESSAGES_DISPLAY_TIMEOUT}
-              onComplete={handleMessagesComplete}
-              variant="circle"
-              className="flex justify-center"
-            />
-            
-            <Button
-              variant="ghost"
-              className="w-full mt-4"
-              onClick={resetToIdle}
-            >
-              Done Reading
-            </Button>
-          </Card>
-        )}
       </main>
 
       {/* Footer */}
