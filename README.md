@@ -7,7 +7,96 @@ A kiosk-based attendance tracking system designed for shop-floor environments wi
 InfoKiosk provides:
 - **Worker Kiosk** (`/worker`) - Employee login/logout station
 - **Attendance Board** (`/board`) - Real-time presence display
-- **Admin Panel** (`/admin`) - Employee and session management
+- **Admin Panel** (`/admin`) - Message management for supervisors
+
+## Admin Panel UI
+
+The Admin Panel (`/admin` or `/public/admin/index.html`) provides message management capabilities for supervisors and office staff.
+
+### Features
+
+- **Authentication**: Simple username/password login with HTTP Basic Auth
+- **Message CRUD**: Create, read, update, and delete employee messages
+- **Message Targeting**: Send messages to all employees, specific roles, or individual employees
+- **Priority Levels**: Set message priority (1-5) for display ordering
+- **Validity Windows**: Schedule when messages become active/expire
+- **Enable/Disable**: Quickly toggle messages without deleting
+- **Real-time Sync**: WebSocket updates when messages change
+
+### Security Model
+
+Admin authentication uses HTTP Basic Auth with credentials from environment variables:
+
+```bash
+# Set in Node-RED environment
+ADMIN_USER=admin
+ADMIN_PASSWORD=your_secure_password
+```
+
+**Security Notes:**
+- All `/api/admin/*` endpoints require authentication
+- Credentials are never stored in frontend code
+- Session is stored in browser localStorage (base64 token)
+- Logout clears session completely
+
+### Message Model
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique identifier |
+| `title` | string | Message title (max 100 chars) |
+| `body` | string | Message content (max 1000 chars) |
+| `target_type` | enum | `all`, `role`, or `employee` |
+| `target_value` | string | Role name or employee ID (null for "all") |
+| `priority` | integer | 1 (low) to 5 (critical) |
+| `valid_from` | datetime | When message becomes active |
+| `valid_to` | datetime | When message expires |
+| `enabled` | boolean | Whether message is active |
+
+### Message Targeting Rules
+
+| Target Type | Target Value | Who Sees It |
+|-------------|--------------|-------------|
+| `all` | (ignored) | All employees |
+| `role` | Role name (e.g., "operator") | Employees with that role |
+| `employee` | Employee ID | Only that specific employee |
+
+### REST API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/admin/messages` | GET | List all messages |
+| `/api/admin/messages` | POST | Create new message |
+| `/api/admin/messages/:id` | PUT | Update message |
+| `/api/admin/messages/:id` | DELETE | Delete message |
+
+All endpoints require `Authorization: Basic <token>` header.
+
+### Configuration
+
+Configuration is at the top of `public/admin/app.js`:
+
+```javascript
+const CONFIG = {
+  API_BASE_URL: '/api/admin',      // REST API endpoint
+  WS_URL: 'ws://localhost/ws',     // WebSocket for real-time updates
+  SESSION_KEY: 'infokiosk_admin_session',
+  TOAST_DURATION: 4000,            // Notification duration (ms)
+  TITLE_MAX_LENGTH: 100,           // Max title characters
+  BODY_MAX_LENGTH: 1000,           // Max body characters
+  DEBUG: true                      // Console logging
+};
+```
+
+### How to Login
+
+1. Navigate to `/admin` in your browser
+2. Enter the admin username and password
+3. Click "Sign In"
+
+If credentials are incorrect, an error message will be displayed.
+
+---
 
 ## Worker Kiosk UI
 
@@ -134,15 +223,22 @@ InfoKiosk.handleServerMessage({
 });
 ```
 
+---
+
 ## Architecture
 
 ### Files
 
 ```
-public/worker/
-├── index.html    # Minimal HTML structure
-├── styles.css    # High-contrast kiosk styles
-└── app.js        # State machine, WebSocket, event handling
+public/
+├── worker/
+│   ├── index.html    # Worker kiosk HTML
+│   ├── styles.css    # High-contrast kiosk styles
+│   └── app.js        # State machine, WebSocket, event handling
+├── admin/
+│   ├── index.html    # Admin panel HTML
+│   ├── styles.css    # Office-friendly styles
+│   └── app.js        # Auth, CRUD, message management
 
 src/
 ├── pages/
@@ -181,6 +277,8 @@ VITE_WS_URL=ws://your-pi:1880/ws
 VITE_DEMO_MODE=false
 ```
 
+---
+
 ## Node-RED Integration
 
 ### Expected Endpoints
@@ -192,6 +290,8 @@ VITE_DEMO_MODE=false
 | `/api/session/login` | POST | Start session |
 | `/api/session/logout` | POST | End session |
 | `/api/session/:employeeId` | GET | Check active session |
+| `/api/admin/messages` | GET/POST | Admin message management |
+| `/api/admin/messages/:id` | PUT/DELETE | Individual message operations |
 | `/ws` | WebSocket | Real-time updates |
 
 ### GPIO Button Configuration
@@ -203,13 +303,17 @@ For Raspberry Pi with Node-RED:
 | GREEN | Configurable | Login |
 | RED | Configurable | Logout |
 
+---
+
 ## Technologies
 
-- **Frontend**: Vanilla JS (Worker Kiosk), React + TypeScript (Admin/Board)
-- **Styling**: Custom CSS (Worker), Tailwind CSS (React)
+- **Frontend**: Vanilla JS (Worker Kiosk, Admin), React + TypeScript (Board)
+- **Styling**: Custom CSS (Vanilla), Tailwind CSS (React)
 - **Backend**: Node-RED on Raspberry Pi
 - **Communication**: WebSocket + REST fallback
 - **Hardware**: Serial RFID, GPIO buttons
+
+---
 
 ## Deployment
 
@@ -217,9 +321,12 @@ For Raspberry Pi with Node-RED:
 
 1. Install Node-RED
 2. Import provided flows
-3. Copy `public/worker/` to Node-RED static folder
-4. Configure RFID reader and GPIO pins
-5. Access at `http://pi-address:1880/worker`
+3. Copy `public/worker/` and `public/admin/` to Node-RED static folder
+4. Set admin credentials in Node-RED environment
+5. Configure RFID reader and GPIO pins
+6. Access at:
+   - Worker: `http://pi-address:1880/worker`
+   - Admin: `http://pi-address:1880/admin`
 
 ### Development
 
@@ -227,6 +334,8 @@ For Raspberry Pi with Node-RED:
 npm install
 npm run dev
 ```
+
+---
 
 ## Common Issues
 
@@ -236,3 +345,5 @@ npm run dev
 | No RFID detection | Verify serial port config, check Node-RED flow |
 | Buttons not working | Check GPIO wiring, verify debounce settings |
 | Timeout too fast | Increase `PENDING_UID_TIMEOUT` in config |
+| Admin login fails | Verify ADMIN_USER and ADMIN_PASSWORD env vars |
+| Session expired | Re-login; session stored in localStorage |
