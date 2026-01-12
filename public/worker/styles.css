@@ -1,0 +1,536 @@
+/* ============================================
+   InfoKiosk Worker UI - Kiosk-Grade Styles
+   ============================================ */
+
+/* CSS Variables for theming */
+:root {
+  /* Colors - Industrial Dark Theme */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-surface: #1a1a24;
+  
+  --text-primary: #f0f0f5;
+  --text-secondary: #8888a0;
+  --text-muted: #555566;
+  
+  --accent-blue: #00d4ff;
+  --accent-blue-glow: rgba(0, 212, 255, 0.3);
+  
+  --success: #22c55e;
+  --success-glow: rgba(34, 197, 94, 0.3);
+  
+  --error: #ef4444;
+  --error-glow: rgba(239, 68, 68, 0.3);
+  
+  --warning: #f59e0b;
+  
+  --button-green: #22c55e;
+  --button-red: #ef4444;
+  
+  /* Sizing */
+  --font-size-huge: 4rem;
+  --font-size-large: 2.5rem;
+  --font-size-medium: 1.5rem;
+  --font-size-normal: 1.25rem;
+  --font-size-small: 1rem;
+  
+  --spacing-large: 3rem;
+  --spacing-medium: 2rem;
+  --spacing-small: 1rem;
+  
+  --border-radius: 1rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ============================================
+   Connection Status Bar
+   ============================================ */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  padding: var(--spacing-small) var(--spacing-medium);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--font-size-small);
+}
+
+.indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.indicator.connected {
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success-glow);
+}
+
+.indicator.reconnecting {
+  background: var(--warning);
+  animation: blink 1s infinite;
+}
+
+.indicator.offline {
+  background: var(--error);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ============================================
+   Clock Display
+   ============================================ */
+.clock {
+  position: absolute;
+  top: var(--spacing-small);
+  right: var(--spacing-medium);
+  font-size: var(--font-size-large);
+  font-weight: 300;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   Main Content Area
+   ============================================ */
+main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-large);
+}
+
+.state-container {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--spacing-medium);
+  width: 100%;
+  max-width: 800px;
+  animation: fadeIn var(--transition-normal);
+}
+
+.state-container.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+.main-message {
+  font-size: var(--font-size-huge);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.sub-message {
+  font-size: var(--font-size-medium);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   Icons
+   ============================================ */
+.icon-container {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rfid-icon {
+  width: 120px;
+  height: 120px;
+  border: 4px solid var(--accent-blue);
+  border-radius: 20px;
+  position: relative;
+  box-shadow: 0 0 30px var(--accent-blue-glow);
+}
+
+.rfid-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--accent-blue);
+  border-radius: 8px;
+}
+
+.rfid-icon::after {
+  content: '';
+  position: absolute;
+  top: 20%;
+  right: 20%;
+  width: 20px;
+  height: 3px;
+  background: var(--accent-blue);
+  border-radius: 2px;
+  box-shadow: 
+    0 8px 0 var(--accent-blue),
+    0 16px 0 var(--accent-blue);
+}
+
+.rfid-icon.pulse {
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { 
+    box-shadow: 0 0 30px var(--accent-blue-glow);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 50px var(--accent-blue-glow), 0 0 80px var(--accent-blue-glow);
+    transform: scale(1.02);
+  }
+}
+
+.card-icon {
+  width: 120px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--accent-blue), #0099cc);
+  border-radius: 12px;
+  position: relative;
+  box-shadow: 0 0 40px var(--accent-blue-glow);
+}
+
+.card-icon::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 30px;
+  height: 24px;
+  background: #ffd700;
+  border-radius: 4px;
+}
+
+/* ============================================
+   Employee Info
+   ============================================ */
+.employee-info {
+  font-size: var(--font-size-large);
+  color: var(--accent-blue);
+  font-weight: 500;
+  min-height: 3rem;
+}
+
+/* ============================================
+   Button Instructions
+   ============================================ */
+.button-instructions {
+  display: flex;
+  gap: var(--spacing-large);
+  margin-top: var(--spacing-medium);
+}
+
+.instruction {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  font-size: var(--font-size-medium);
+  padding: var(--spacing-small) var(--spacing-medium);
+  background: var(--bg-surface);
+  border-radius: var(--border-radius);
+  border: 2px solid transparent;
+}
+
+.instruction.login {
+  border-color: var(--button-green);
+}
+
+.instruction.logout {
+  border-color: var(--button-red);
+}
+
+.button-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.button-indicator.green {
+  background: var(--button-green);
+  box-shadow: 0 0 15px var(--success-glow);
+}
+
+.button-indicator.red {
+  background: var(--button-red);
+  box-shadow: 0 0 15px var(--error-glow);
+}
+
+/* ============================================
+   Countdown
+   ============================================ */
+.countdown-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-small);
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--spacing-medium);
+}
+
+.countdown-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-surface);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.countdown-progress {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), #00a8cc);
+  border-radius: 4px;
+  transition: width 100ms linear;
+  width: 100%;
+}
+
+.countdown-text {
+  font-size: var(--font-size-normal);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  min-width: 3rem;
+  text-align: right;
+}
+
+/* ============================================
+   Spinner
+   ============================================ */
+.spinner {
+  width: 80px;
+  height: 80px;
+  border: 6px solid var(--bg-surface);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Result State
+   ============================================ */
+.result-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.result-icon.success {
+  background: var(--success);
+  box-shadow: 0 0 60px var(--success-glow);
+}
+
+.result-icon.success::before {
+  content: '';
+  width: 30px;
+  height: 60px;
+  border: 8px solid white;
+  border-left: none;
+  border-top: none;
+  transform: rotate(45deg) translate(-5px, -5px);
+}
+
+.result-icon.error {
+  background: var(--error);
+  box-shadow: 0 0 60px var(--error-glow);
+}
+
+.result-icon.error::before,
+.result-icon.error::after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 8px;
+  background: white;
+  border-radius: 4px;
+}
+
+.result-icon.error::before {
+  transform: rotate(45deg);
+}
+
+.result-icon.error::after {
+  transform: rotate(-45deg);
+}
+
+/* ============================================
+   Messages
+   ============================================ */
+.messages-container {
+  width: 100%;
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
+  padding: var(--spacing-small);
+}
+
+.message-card {
+  background: var(--bg-surface);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-medium);
+  text-align: left;
+  border-left: 4px solid var(--accent-blue);
+}
+
+.message-card.priority-high {
+  border-left-color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.message-card.priority-medium {
+  border-left-color: var(--warning);
+}
+
+.message-title {
+  font-size: var(--font-size-medium);
+  font-weight: 600;
+  margin-bottom: var(--spacing-small);
+}
+
+.message-body {
+  font-size: var(--font-size-normal);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Custom scrollbar for messages */
+.messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+/* ============================================
+   HID RFID Input (Hidden but focusable)
+   ============================================ */
+.hid-input {
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+@media (max-width: 768px) {
+  :root {
+    --font-size-huge: 2.5rem;
+    --font-size-large: 1.75rem;
+    --font-size-medium: 1.25rem;
+    --font-size-normal: 1rem;
+    --spacing-large: 2rem;
+    --spacing-medium: 1.5rem;
+  }
+  
+  .button-instructions {
+    flex-direction: column;
+    gap: var(--spacing-small);
+  }
+  
+  .icon-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .rfid-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .clock {
+    font-size: var(--font-size-medium);
+  }
+}
+
+/* ============================================
+   Kiosk Mode Helpers
+   ============================================ */
+/* Hide cursor for pure touch/button interaction */
+.kiosk-mode {
+  cursor: none;
+}
+
+/* Disable text selection globally */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure full-screen experience */
+@media (display-mode: fullscreen) {
+  .status-bar {
+    padding-top: env(safe-area-inset-top, var(--spacing-small));
+  }
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>InfoKiosk - Worker Station</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Connection Status -->
+    <div id="connection-status" class="status-bar">
+      <span id="status-indicator" class="indicator"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+
+    <!-- Clock Display -->
+    <div id="clock" class="clock"></div>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      
+      <!-- IDLE State -->
+      <section id="state-idle" class="state-container active">
+        <div class="icon-container">
+          <div class="rfid-icon pulse"></div>
+        </div>
+        <h1 class="main-message">Please scan your card</h1>
+        <p class="sub-message">Hold your card near the reader</p>
+      </section>
+
+      <!-- CARD DETECTED State -->
+      <section id="state-card-detected" class="state-container">
+        <div class="icon-container">
+          <div class="card-icon"></div>
+        </div>
+        <h1 class="main-message">Card Detected</h1>
+        <div id="employee-info" class="employee-info"></div>
+        <div class="button-instructions">
+          <div class="instruction login">
+            <span class="button-indicator green"></span>
+            <span>Press GREEN to log in</span>
+          </div>
+          <div class="instruction logout">
+            <span class="button-indicator red"></span>
+            <span>Press RED to log out</span>
+          </div>
+        </div>
+        <div class="countdown-container">
+          <div class="countdown-bar">
+            <div id="countdown-progress" class="countdown-progress"></div>
+          </div>
+          <span id="countdown-text" class="countdown-text">10s</span>
+        </div>
+      </section>
+
+      <!-- PROCESSING State -->
+      <section id="state-processing" class="state-container">
+        <div class="spinner"></div>
+        <h1 class="main-message">Processing...</h1>
+        <p class="sub-message">Please wait</p>
+      </section>
+
+      <!-- RESULT State -->
+      <section id="state-result" class="state-container">
+        <div id="result-icon" class="result-icon"></div>
+        <h1 id="result-message" class="main-message"></h1>
+        <p id="result-detail" class="sub-message"></p>
+      </section>
+
+      <!-- MESSAGES State -->
+      <section id="state-messages" class="state-container">
+        <h1 class="main-message">Your Messages</h1>
+        <div id="messages-container" class="messages-container"></div>
+        <p class="sub-message">Returning to home in <span id="messages-countdown">10</span>s</p>
+      </section>
+
+    </main>
+
+    <!-- HID RFID Fallback Input (hidden, captures keyboard input) -->
+    <input 
+      type="text" 
+      id="hid-rfid-input" 
+      class="hid-input" 
+      autocomplete="off" 
+      autofocus
+    >
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
