@@ -1,0 +1,1393 @@
+[
+  {
+    "id": "flow-db",
+    "type": "tab",
+    "label": "db-flow",
+    "disabled": false,
+    "info": "Database connections and SQL helpers for employees_db and attendance_db"
+  },
+  {
+    "id": "flow-session",
+    "type": "tab",
+    "label": "session-flow",
+    "disabled": false,
+    "info": "Login/logout session management with RFID support"
+  },
+  {
+    "id": "flow-ws",
+    "type": "tab",
+    "label": "ws-flow",
+    "disabled": false,
+    "info": "WebSocket real-time communication"
+  },
+  {
+    "id": "flow-api",
+    "type": "tab",
+    "label": "api-flow",
+    "disabled": false,
+    "info": "REST API endpoints"
+  },
+  {
+    "id": "config-employees-db",
+    "type": "postgreSQLConfig",
+    "name": "employees-db",
+    "host": "localhost",
+    "port": "5432",
+    "database": "employees_db",
+    "ssl": false
+  },
+  {
+    "id": "config-attendance-db",
+    "type": "postgreSQLConfig",
+    "name": "attendance-db",
+    "host": "localhost",
+    "port": "5432",
+    "database": "attendance_db",
+    "ssl": false
+  },
+  {
+    "id": "subflow-sql-employees",
+    "type": "subflow",
+    "name": "SQL Employees",
+    "info": "Execute SQL on employees_db",
+    "category": "InfoKiosk",
+    "in": [{"x": 50, "y": 30, "wires": [{"id": "subflow-sql-employees-pg"}]}],
+    "out": [{"x": 350, "y": 30, "wires": [{"id": "subflow-sql-employees-pg", "port": 0}]}],
+    "env": [],
+    "meta": {},
+    "color": "#87CEEB"
+  },
+  {
+    "id": "subflow-sql-employees-pg",
+    "type": "postgresql",
+    "z": "subflow-sql-employees",
+    "name": "employees_db",
+    "query": "",
+    "postgreSQLConfig": "config-employees-db",
+    "split": false,
+    "rowsPerMsg": 1,
+    "outputs": 1,
+    "x": 200,
+    "y": 30
+  },
+  {
+    "id": "subflow-sql-attendance",
+    "type": "subflow",
+    "name": "SQL Attendance",
+    "info": "Execute SQL on attendance_db",
+    "category": "InfoKiosk",
+    "in": [{"x": 50, "y": 30, "wires": [{"id": "subflow-sql-attendance-pg"}]}],
+    "out": [{"x": 350, "y": 30, "wires": [{"id": "subflow-sql-attendance-pg", "port": 0}]}],
+    "env": [],
+    "meta": {},
+    "color": "#98FB98"
+  },
+  {
+    "id": "subflow-sql-attendance-pg",
+    "type": "postgresql",
+    "z": "subflow-sql-attendance",
+    "name": "attendance_db",
+    "query": "",
+    "postgreSQLConfig": "config-attendance-db",
+    "split": false,
+    "rowsPerMsg": 1,
+    "outputs": 1,
+    "x": 200,
+    "y": 30
+  },
+
+  {
+    "id": "db-comment",
+    "type": "comment",
+    "z": "flow-db",
+    "name": "Database Flow - Schema Map & Connection Test",
+    "info": "This flow manages database connections.\n\nLoad schema-map.json on startup and store in flow context.\nProvides connection test endpoints.",
+    "x": 200,
+    "y": 40
+  },
+  {
+    "id": "db-inject-startup",
+    "type": "inject",
+    "z": "flow-db",
+    "name": "On Startup",
+    "props": [],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 110,
+    "y": 100
+  },
+  {
+    "id": "db-load-schema",
+    "type": "file in",
+    "z": "flow-db",
+    "name": "Load schema-map.json",
+    "filename": "schema-map.json",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "allProps": false,
+    "x": 300,
+    "y": 100
+  },
+  {
+    "id": "db-parse-schema",
+    "type": "json",
+    "z": "flow-db",
+    "name": "Parse JSON",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 480,
+    "y": 100
+  },
+  {
+    "id": "db-store-schema",
+    "type": "function",
+    "z": "flow-db",
+    "name": "Store in Flow Context",
+    "func": "flow.set('schemaMap', msg.payload);\nnode.status({fill:'green', shape:'dot', text:'Schema loaded'});\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 670,
+    "y": 100
+  },
+  {
+    "id": "db-debug-schema",
+    "type": "debug",
+    "z": "flow-db",
+    "name": "Schema Map",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 870,
+    "y": 100
+  },
+
+  {
+    "id": "db-test-employees-http",
+    "type": "http in",
+    "z": "flow-db",
+    "name": "GET /api/test/employees-db",
+    "url": "/api/test/employees-db",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 180
+  },
+  {
+    "id": "db-test-employees-sql",
+    "type": "function",
+    "z": "flow-db",
+    "name": "Test Query",
+    "func": "msg.payload = 'SELECT 1 as test';\nreturn msg;",
+    "outputs": 1,
+    "x": 370,
+    "y": 180
+  },
+  {
+    "id": "db-test-employees-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-db",
+    "name": "",
+    "x": 540,
+    "y": 180
+  },
+  {
+    "id": "db-test-employees-response",
+    "type": "function",
+    "z": "flow-db",
+    "name": "Format Response",
+    "func": "msg.payload = {\n    success: true,\n    database: 'employees_db',\n    result: msg.payload\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 730,
+    "y": 180
+  },
+  {
+    "id": "db-test-employees-http-out",
+    "type": "http response",
+    "z": "flow-db",
+    "name": "",
+    "statusCode": "200",
+    "headers": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json"
+    },
+    "x": 910,
+    "y": 180
+  },
+
+  {
+    "id": "db-test-attendance-http",
+    "type": "http in",
+    "z": "flow-db",
+    "name": "GET /api/test/attendance-db",
+    "url": "/api/test/attendance-db",
+    "method": "get",
+    "upload": false,
+    "x": 160,
+    "y": 240
+  },
+  {
+    "id": "db-test-attendance-sql",
+    "type": "function",
+    "z": "flow-db",
+    "name": "Test Query",
+    "func": "msg.payload = 'SELECT 1 as test';\nreturn msg;",
+    "outputs": 1,
+    "x": 370,
+    "y": 240
+  },
+  {
+    "id": "db-test-attendance-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-db",
+    "name": "",
+    "x": 540,
+    "y": 240
+  },
+  {
+    "id": "db-test-attendance-response",
+    "type": "function",
+    "z": "flow-db",
+    "name": "Format Response",
+    "func": "msg.payload = {\n    success: true,\n    database: 'attendance_db',\n    result: msg.payload\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 730,
+    "y": 240
+  },
+  {
+    "id": "db-test-attendance-http-out",
+    "type": "http response",
+    "z": "flow-db",
+    "name": "",
+    "statusCode": "200",
+    "headers": {
+      "Access-Control-Allow-Origin": "*",
+      "Content-Type": "application/json"
+    },
+    "x": 910,
+    "y": 240
+  },
+
+  {
+    "id": "session-comment",
+    "type": "comment",
+    "z": "flow-session",
+    "name": "Session Flow - Login/Logout Management",
+    "info": "Handles employee login and logout.\n\nLogin: Creates active_session + attendance_event\nLogout: Removes active_session + creates attendance_event\n\nBroadcasts updates via WebSocket.",
+    "x": 180,
+    "y": 40
+  },
+  {
+    "id": "session-link-login",
+    "type": "link in",
+    "z": "flow-session",
+    "name": "Login Request",
+    "links": [],
+    "x": 75,
+    "y": 120
+  },
+  {
+    "id": "session-login-validate",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Validate & Prepare Login",
+    "func": "const data = msg.payload;\n\nif (!data.employee_id && !data.rfid_uid) {\n    msg.error = 'Missing employee_id or rfid_uid';\n    return [null, msg];\n}\n\nmsg.loginData = {\n    employee_id: data.employee_id,\n    rfid_uid: data.rfid_uid,\n    source: data.source || 'rfid'\n};\n\n// If we have rfid_uid but no employee_id, we need to look up\nif (!data.employee_id && data.rfid_uid) {\n    msg.payload = `SELECT id, name, role, rfid_uid, active \n                   FROM employees \n                   WHERE rfid_uid = '${data.rfid_uid}' AND active = true`;\n    return [msg, null];\n}\n\n// We have employee_id, proceed to check session\nmsg.payload = `SELECT * FROM active_sessions WHERE employee_id = '${data.employee_id}'`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 280,
+    "y": 120
+  },
+  {
+    "id": "session-login-lookup",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-session",
+    "name": "Lookup Employee",
+    "x": 520,
+    "y": 100
+  },
+  {
+    "id": "session-login-check-employee",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Check Employee Found",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.error = 'Employee not found or inactive';\n    return [null, msg];\n}\n\nconst employee = msg.payload[0];\nmsg.employee = employee;\nmsg.loginData.employee_id = employee.id;\nmsg.loginData.rfid_uid = employee.rfid_uid;\n\n// Check if already logged in\nmsg.payload = `SELECT * FROM active_sessions WHERE employee_id = '${employee.id}'`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 730,
+    "y": 100
+  },
+  {
+    "id": "session-login-check-session",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Check Session",
+    "x": 520,
+    "y": 160
+  },
+  {
+    "id": "session-login-decide",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Decide: Login or Already In",
+    "func": "if (msg.payload && msg.payload.length > 0) {\n    // Already logged in - this is actually a logout request\n    msg.isLogout = true;\n    msg.session = msg.payload[0];\n    return [null, msg];\n}\n\n// Not logged in - proceed with login\nconst data = msg.loginData;\nconst now = new Date().toISOString();\n\nmsg.payload = `\n    INSERT INTO active_sessions (employee_id, rfid_uid, login_ts, source)\n    VALUES ('${data.employee_id}', '${data.rfid_uid}', '${now}', '${data.source}')\n    RETURNING *\n`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 750,
+    "y": 160
+  },
+  {
+    "id": "session-login-insert",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Insert Session",
+    "x": 520,
+    "y": 220
+  },
+  {
+    "id": "session-login-event",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Create Login Event",
+    "func": "const session = msg.payload[0];\nmsg.session = session;\n\nconst now = new Date().toISOString();\nmsg.payload = `\n    INSERT INTO attendance_events (employee_id, rfid_uid, event_type, ts, source)\n    VALUES ('${session.employee_id}', '${session.rfid_uid}', 'login', '${now}', '${msg.loginData.source}')\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 740,
+    "y": 220
+  },
+  {
+    "id": "session-login-event-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Insert Event",
+    "x": 520,
+    "y": 280
+  },
+  {
+    "id": "session-login-get-messages",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Get Messages for Employee",
+    "func": "const employee = msg.employee;\nconst now = new Date().toISOString();\n\nmsg.payload = `\n    SELECT * FROM employee_messages \n    WHERE enabled = true \n    AND (valid_from IS NULL OR valid_from <= '${now}')\n    AND (valid_to IS NULL OR valid_to >= '${now}')\n    AND (\n        target_type = 'all'\n        OR (target_type = 'employee' AND target_value = '${employee.id}')\n        OR (target_type = 'role' AND target_value = '${employee.role}')\n    )\n    ORDER BY priority DESC, created_at DESC\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 770,
+    "y": 280
+  },
+  {
+    "id": "session-login-messages-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Get Messages",
+    "x": 520,
+    "y": 340
+  },
+  {
+    "id": "session-login-success",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Format Login Success",
+    "func": "msg.messages = msg.payload || [];\n\nmsg.result = {\n    success: true,\n    type: 'login_success',\n    payload: {\n        employee: msg.employee,\n        session: msg.session,\n        messages: msg.messages\n    }\n};\n\n// Send to WebSocket broadcast\nmsg.payload = msg.result;\nreturn msg;",
+    "outputs": 1,
+    "x": 750,
+    "y": 340
+  },
+  {
+    "id": "session-link-login-out",
+    "type": "link out",
+    "z": "flow-session",
+    "name": "Login Result",
+    "mode": "link",
+    "links": ["ws-link-broadcast-in"],
+    "x": 935,
+    "y": 340
+  },
+
+  {
+    "id": "session-link-logout",
+    "type": "link in",
+    "z": "flow-session",
+    "name": "Logout Request",
+    "links": [],
+    "x": 75,
+    "y": 440
+  },
+  {
+    "id": "session-logout-validate",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Validate Logout",
+    "func": "const data = msg.payload;\n\nif (!data.employee_id) {\n    msg.error = 'Missing employee_id';\n    return [null, msg];\n}\n\nmsg.logoutData = {\n    employee_id: data.employee_id,\n    source: data.source || 'rfid'\n};\n\n// Get session info first\nmsg.payload = `SELECT * FROM active_sessions WHERE employee_id = '${data.employee_id}'`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 280,
+    "y": 440
+  },
+  {
+    "id": "session-logout-get-session",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Get Session",
+    "x": 520,
+    "y": 420
+  },
+  {
+    "id": "session-logout-check",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Check Session Exists",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.error = 'Employee not logged in';\n    return [null, msg];\n}\n\nmsg.session = msg.payload[0];\n\n// Delete the session\nmsg.payload = `DELETE FROM active_sessions WHERE employee_id = '${msg.logoutData.employee_id}'`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 730,
+    "y": 420
+  },
+  {
+    "id": "session-logout-delete",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Delete Session",
+    "x": 520,
+    "y": 480
+  },
+  {
+    "id": "session-logout-event",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Create Logout Event",
+    "func": "const session = msg.session;\nconst now = new Date().toISOString();\n\nmsg.payload = `\n    INSERT INTO attendance_events (employee_id, rfid_uid, event_type, ts, source)\n    VALUES ('${session.employee_id}', '${session.rfid_uid}', 'logout', '${now}', '${msg.logoutData.source}')\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 750,
+    "y": 480
+  },
+  {
+    "id": "session-logout-event-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-session",
+    "name": "Insert Event",
+    "x": 520,
+    "y": 540
+  },
+  {
+    "id": "session-logout-get-employee",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Get Employee Info",
+    "func": "msg.payload = `SELECT id, name, role, rfid_uid FROM employees WHERE id = '${msg.session.employee_id}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 760,
+    "y": 540
+  },
+  {
+    "id": "session-logout-employee-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-session",
+    "name": "Get Employee",
+    "x": 520,
+    "y": 600
+  },
+  {
+    "id": "session-logout-success",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Format Logout Success",
+    "func": "const employee = msg.payload[0] || {};\n\nmsg.result = {\n    success: true,\n    type: 'logout_success',\n    payload: {\n        employee: employee,\n        session: msg.session\n    }\n};\n\nmsg.payload = msg.result;\nreturn msg;",
+    "outputs": 1,
+    "x": 750,
+    "y": 600
+  },
+  {
+    "id": "session-link-logout-out",
+    "type": "link out",
+    "z": "flow-session",
+    "name": "Logout Result",
+    "mode": "link",
+    "links": ["ws-link-broadcast-in"],
+    "x": 935,
+    "y": 600
+  },
+
+  {
+    "id": "session-error-handler",
+    "type": "function",
+    "z": "flow-session",
+    "name": "Format Error",
+    "func": "msg.payload = {\n    success: false,\n    type: msg.isLogout ? 'logout_error' : 'login_error',\n    payload: {\n        error: msg.error || 'Unknown error'\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 520,
+    "y": 700
+  },
+  {
+    "id": "session-link-error-out",
+    "type": "link out",
+    "z": "flow-session",
+    "name": "Error Result",
+    "mode": "link",
+    "links": ["ws-link-broadcast-in"],
+    "x": 935,
+    "y": 700
+  },
+
+  {
+    "id": "ws-comment",
+    "type": "comment",
+    "z": "flow-ws",
+    "name": "WebSocket Flow - Real-time Communication",
+    "info": "Handles WebSocket connections for real-time updates.\n\nIncoming: ping, request_full_state, login_request, logout_request\nOutgoing: pong, full_state, attendance_update, login/logout results",
+    "x": 200,
+    "y": 40
+  },
+  {
+    "id": "ws-in",
+    "type": "websocket in",
+    "z": "flow-ws",
+    "name": "WS /ws",
+    "server": "ws-server",
+    "client": "",
+    "x": 90,
+    "y": 120
+  },
+  {
+    "id": "ws-server",
+    "type": "websocket-listener",
+    "path": "/ws",
+    "wholemsg": "false"
+  },
+  {
+    "id": "ws-parse",
+    "type": "json",
+    "z": "flow-ws",
+    "name": "Parse JSON",
+    "property": "payload",
+    "action": "",
+    "pretty": false,
+    "x": 240,
+    "y": 120
+  },
+  {
+    "id": "ws-router",
+    "type": "switch",
+    "z": "flow-ws",
+    "name": "Route by Type",
+    "property": "payload.type",
+    "propertyType": "msg",
+    "rules": [
+      {"t": "eq", "v": "ping", "vt": "str"},
+      {"t": "eq", "v": "request_full_state", "vt": "str"},
+      {"t": "eq", "v": "login_request", "vt": "str"},
+      {"t": "eq", "v": "logout_request", "vt": "str"}
+    ],
+    "checkall": "false",
+    "repair": false,
+    "outputs": 4,
+    "x": 400,
+    "y": 120
+  },
+  {
+    "id": "ws-pong",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Pong",
+    "func": "msg.payload = { type: 'pong' };\nreturn msg;",
+    "outputs": 1,
+    "x": 570,
+    "y": 80
+  },
+  {
+    "id": "ws-pong-out",
+    "type": "websocket out",
+    "z": "flow-ws",
+    "name": "Reply",
+    "server": "ws-server",
+    "client": "",
+    "x": 730,
+    "y": 80
+  },
+
+  {
+    "id": "ws-fullstate-query",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Query Active Sessions",
+    "func": "msg.originalSession = msg._session;\nmsg.payload = `\n    SELECT s.*, e.name, e.role \n    FROM active_sessions s\n    JOIN employees e ON e.id = s.employee_id\n    ORDER BY s.login_ts DESC\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 610,
+    "y": 120
+  },
+  {
+    "id": "ws-fullstate-employees",
+    "type": "postgresql",
+    "z": "flow-ws",
+    "name": "Get Sessions",
+    "query": "",
+    "postgreSQLConfig": "config-attendance-db",
+    "split": false,
+    "rowsPerMsg": 1,
+    "outputs": 1,
+    "x": 580,
+    "y": 160
+  },
+  {
+    "id": "ws-fullstate-format",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Format Full State",
+    "func": "msg._session = msg.originalSession;\nmsg.payload = {\n    type: 'full_state',\n    payload: {\n        activeSessions: msg.payload || [],\n        timestamp: new Date().toISOString()\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 770,
+    "y": 160
+  },
+  {
+    "id": "ws-fullstate-out",
+    "type": "websocket out",
+    "z": "flow-ws",
+    "name": "Reply",
+    "server": "ws-server",
+    "client": "",
+    "x": 930,
+    "y": 160
+  },
+
+  {
+    "id": "ws-login-prep",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Prepare Login",
+    "func": "msg.wsSession = msg._session;\nmsg.payload = msg.payload.payload;\nreturn msg;",
+    "outputs": 1,
+    "x": 590,
+    "y": 200
+  },
+  {
+    "id": "ws-link-to-login",
+    "type": "link out",
+    "z": "flow-ws",
+    "name": "To Login",
+    "mode": "link",
+    "links": ["session-link-login"],
+    "x": 755,
+    "y": 200
+  },
+
+  {
+    "id": "ws-logout-prep",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Prepare Logout",
+    "func": "msg.wsSession = msg._session;\nmsg.payload = msg.payload.payload;\nreturn msg;",
+    "outputs": 1,
+    "x": 600,
+    "y": 240
+  },
+  {
+    "id": "ws-link-to-logout",
+    "type": "link out",
+    "z": "flow-ws",
+    "name": "To Logout",
+    "mode": "link",
+    "links": ["session-link-logout"],
+    "x": 755,
+    "y": 240
+  },
+
+  {
+    "id": "ws-link-broadcast-in",
+    "type": "link in",
+    "z": "flow-ws",
+    "name": "Broadcast Input",
+    "links": ["session-link-login-out", "session-link-logout-out", "session-link-error-out"],
+    "x": 75,
+    "y": 340
+  },
+  {
+    "id": "ws-broadcast-get-state",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Save Result & Query State",
+    "func": "msg.broadcastResult = msg.payload;\nmsg.payload = `\n    SELECT s.*, e.name, e.role \n    FROM active_sessions s\n    JOIN employees e ON e.id = s.employee_id\n    ORDER BY s.login_ts DESC\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 310,
+    "y": 340
+  },
+  {
+    "id": "ws-broadcast-query",
+    "type": "postgresql",
+    "z": "flow-ws",
+    "name": "Get Sessions",
+    "query": "",
+    "postgreSQLConfig": "config-attendance-db",
+    "split": false,
+    "rowsPerMsg": 1,
+    "outputs": 1,
+    "x": 540,
+    "y": 340
+  },
+  {
+    "id": "ws-broadcast-format",
+    "type": "function",
+    "z": "flow-ws",
+    "name": "Format Broadcast",
+    "func": "const result = msg.broadcastResult;\n\n// Send the specific result to the requesting client\nmsg.wsResult = result;\n\n// Create attendance update for all clients\nmsg.payload = {\n    type: 'attendance_update',\n    payload: {\n        activeSessions: msg.payload || [],\n        event: {\n            type: result.type,\n            employeeId: result.payload?.employee?.id\n        },\n        timestamp: new Date().toISOString()\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 730,
+    "y": 340
+  },
+  {
+    "id": "ws-broadcast-out",
+    "type": "websocket out",
+    "z": "flow-ws",
+    "name": "Broadcast All",
+    "server": "ws-server",
+    "client": "",
+    "x": 920,
+    "y": 340
+  },
+
+  {
+    "id": "api-comment",
+    "type": "comment",
+    "z": "flow-api",
+    "name": "API Flow - REST Endpoints",
+    "info": "REST API endpoints for the InfoKiosk frontend.\n\nEmployees: GET /api/employees, GET /api/employees/:id, GET /api/employees/rfid/:uid\nBoard: GET /api/board/today\nSessions: POST /api/session/login, POST /api/session/logout, GET /api/session/:id\nMessages: CRUD operations",
+    "x": 160,
+    "y": 40
+  },
+
+  {
+    "id": "api-cors-options",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "OPTIONS /*",
+    "url": "/api/*",
+    "method": "options",
+    "upload": false,
+    "x": 100,
+    "y": 100
+  },
+  {
+    "id": "api-cors-response",
+    "type": "function",
+    "z": "flow-api",
+    "name": "CORS Headers",
+    "func": "msg.headers = {\n    'Access-Control-Allow-Origin': '*',\n    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',\n    'Access-Control-Allow-Headers': 'Content-Type, Authorization'\n};\nmsg.payload = '';\nreturn msg;",
+    "outputs": 1,
+    "x": 290,
+    "y": 100
+  },
+  {
+    "id": "api-cors-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "204",
+    "headers": {},
+    "x": 470,
+    "y": 100
+  },
+
+  {
+    "id": "api-employees-list-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/employees",
+    "url": "/api/employees",
+    "method": "get",
+    "upload": false,
+    "x": 130,
+    "y": 180
+  },
+  {
+    "id": "api-employees-list-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query",
+    "func": "const activeOnly = msg.req.query.active === 'true';\nmsg.payload = `SELECT id, name, role, rfid_uid, active FROM employees${activeOnly ? ' WHERE active = true' : ''} ORDER BY name`;\nreturn msg;",
+    "outputs": 1,
+    "x": 330,
+    "y": 180
+  },
+  {
+    "id": "api-employees-list-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-api",
+    "name": "",
+    "x": 500,
+    "y": 180
+  },
+  {
+    "id": "api-employees-list-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = { success: true, data: msg.payload };\nreturn msg;",
+    "outputs": 1,
+    "x": 670,
+    "y": 180
+  },
+  {
+    "id": "api-employees-list-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "200",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 830,
+    "y": 180
+  },
+
+  {
+    "id": "api-employees-get-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/employees/:id",
+    "url": "/api/employees/:id",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 240
+  },
+  {
+    "id": "api-employees-get-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query",
+    "func": "const id = msg.req.params.id;\nmsg.payload = `SELECT id, name, role, rfid_uid, active FROM employees WHERE id = '${id}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 330,
+    "y": 240
+  },
+  {
+    "id": "api-employees-get-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-api",
+    "name": "",
+    "x": 500,
+    "y": 240
+  },
+  {
+    "id": "api-employees-get-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { success: false, error: 'Employee not found' };\n} else {\n    msg.payload = { success: true, data: msg.payload[0] };\n}\nreturn msg;",
+    "outputs": 1,
+    "x": 670,
+    "y": 240
+  },
+  {
+    "id": "api-employees-get-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 830,
+    "y": 240
+  },
+
+  {
+    "id": "api-employees-rfid-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/employees/rfid/:uid",
+    "url": "/api/employees/rfid/:uid",
+    "method": "get",
+    "upload": false,
+    "x": 160,
+    "y": 300
+  },
+  {
+    "id": "api-employees-rfid-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query",
+    "func": "const uid = msg.req.params.uid;\nmsg.payload = `SELECT id, name, role, rfid_uid, active FROM employees WHERE rfid_uid = '${uid}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 370,
+    "y": 300
+  },
+  {
+    "id": "api-employees-rfid-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-api",
+    "name": "",
+    "x": 540,
+    "y": 300
+  },
+  {
+    "id": "api-employees-rfid-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { success: false, error: 'Employee not found' };\n} else {\n    msg.payload = { success: true, data: msg.payload[0] };\n}\nreturn msg;",
+    "outputs": 1,
+    "x": 710,
+    "y": 300
+  },
+  {
+    "id": "api-employees-rfid-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 870,
+    "y": 300
+  },
+
+  {
+    "id": "api-board-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/board/today",
+    "url": "/api/board/today",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 380
+  },
+  {
+    "id": "api-board-sessions-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query Sessions",
+    "func": "msg.payload = `\n    SELECT s.employee_id, s.rfid_uid, s.login_ts, s.source\n    FROM active_sessions s\n    ORDER BY s.login_ts DESC\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 350,
+    "y": 380
+  },
+  {
+    "id": "api-board-sessions-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 540,
+    "y": 380
+  },
+  {
+    "id": "api-board-get-employees",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Save & Query Employees",
+    "func": "msg.sessions = msg.payload || [];\n\nif (msg.sessions.length === 0) {\n    msg.payload = { success: true, data: { activeSessions: [], employees: [] } };\n    return [null, msg];\n}\n\nconst ids = msg.sessions.map(s => `'${s.employee_id}'`).join(',');\nmsg.payload = `SELECT id, name, role, rfid_uid FROM employees WHERE id IN (${ids})`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 770,
+    "y": 380
+  },
+  {
+    "id": "api-board-employees-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-api",
+    "name": "",
+    "x": 540,
+    "y": 440
+  },
+  {
+    "id": "api-board-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format Board",
+    "func": "const employees = msg.payload || [];\nconst sessions = msg.sessions;\n\n// Merge employee info into sessions\nconst activeSessions = sessions.map(s => {\n    const emp = employees.find(e => e.id === s.employee_id) || {};\n    return {\n        ...s,\n        name: emp.name,\n        role: emp.role\n    };\n});\n\nmsg.payload = {\n    success: true,\n    data: {\n        activeSessions,\n        employees,\n        timestamp: new Date().toISOString()\n    }\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 730,
+    "y": 440
+  },
+  {
+    "id": "api-board-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "200",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 910,
+    "y": 440
+  },
+
+  {
+    "id": "api-session-login-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "POST /api/session/login",
+    "url": "/api/session/login",
+    "method": "post",
+    "upload": false,
+    "x": 150,
+    "y": 520
+  },
+  {
+    "id": "api-session-login-prep",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Prepare",
+    "func": "msg.httpResponse = true;\nreturn msg;",
+    "outputs": 1,
+    "x": 350,
+    "y": 520
+  },
+  {
+    "id": "api-link-to-login",
+    "type": "link out",
+    "z": "flow-api",
+    "name": "To Session Login",
+    "mode": "link",
+    "links": ["session-link-login"],
+    "x": 515,
+    "y": 520
+  },
+
+  {
+    "id": "api-session-logout-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "POST /api/session/logout",
+    "url": "/api/session/logout",
+    "method": "post",
+    "upload": false,
+    "x": 160,
+    "y": 580
+  },
+  {
+    "id": "api-session-logout-prep",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Prepare",
+    "func": "msg.httpResponse = true;\nreturn msg;",
+    "outputs": 1,
+    "x": 370,
+    "y": 580
+  },
+  {
+    "id": "api-link-to-logout",
+    "type": "link out",
+    "z": "flow-api",
+    "name": "To Session Logout",
+    "mode": "link",
+    "links": ["session-link-logout"],
+    "x": 535,
+    "y": 580
+  },
+
+  {
+    "id": "api-session-get-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/session/:id",
+    "url": "/api/session/:id",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 640
+  },
+  {
+    "id": "api-session-get-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query",
+    "func": "const id = msg.req.params.id;\nmsg.payload = `SELECT * FROM active_sessions WHERE employee_id = '${id}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 330,
+    "y": 640
+  },
+  {
+    "id": "api-session-get-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 500,
+    "y": 640
+  },
+  {
+    "id": "api-session-get-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = {\n    success: true,\n    data: msg.payload && msg.payload.length > 0 ? msg.payload[0] : null\n};\nreturn msg;",
+    "outputs": 1,
+    "x": 670,
+    "y": 640
+  },
+  {
+    "id": "api-session-get-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "200",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 830,
+    "y": 640
+  },
+
+  {
+    "id": "api-messages-list-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/messages",
+    "url": "/api/messages",
+    "method": "get",
+    "upload": false,
+    "x": 130,
+    "y": 720
+  },
+  {
+    "id": "api-messages-list-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query",
+    "func": "msg.payload = `SELECT * FROM employee_messages ORDER BY priority DESC, created_at DESC`;\nreturn msg;",
+    "outputs": 1,
+    "x": 330,
+    "y": 720
+  },
+  {
+    "id": "api-messages-list-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 500,
+    "y": 720
+  },
+  {
+    "id": "api-messages-list-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = { success: true, data: msg.payload };\nreturn msg;",
+    "outputs": 1,
+    "x": 670,
+    "y": 720
+  },
+  {
+    "id": "api-messages-list-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "200",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 830,
+    "y": 720
+  },
+
+  {
+    "id": "api-messages-create-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "POST /api/messages",
+    "url": "/api/messages",
+    "method": "post",
+    "upload": false,
+    "x": 130,
+    "y": 780
+  },
+  {
+    "id": "api-messages-create-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Insert",
+    "func": "const m = msg.payload;\nmsg.payload = `\n    INSERT INTO employee_messages (title, body, target_type, target_value, priority, valid_from, valid_to, enabled)\n    VALUES (\n        '${m.title}',\n        '${m.body || ''}',\n        '${m.target_type || 'all'}',\n        ${m.target_value ? `'${m.target_value}'` : 'NULL'},\n        ${m.priority || 2},\n        ${m.valid_from ? `'${m.valid_from}'` : 'NULL'},\n        ${m.valid_to ? `'${m.valid_to}'` : 'NULL'},\n        ${m.enabled !== false}\n    )\n    RETURNING *\n`;\nreturn msg;",
+    "outputs": 1,
+    "x": 330,
+    "y": 780
+  },
+  {
+    "id": "api-messages-create-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 500,
+    "y": 780
+  },
+  {
+    "id": "api-messages-create-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = { success: true, data: msg.payload[0] };\nreturn msg;",
+    "outputs": 1,
+    "x": 670,
+    "y": 780
+  },
+  {
+    "id": "api-messages-create-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "201",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 830,
+    "y": 780
+  },
+
+  {
+    "id": "api-messages-update-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "PUT /api/messages/:id",
+    "url": "/api/messages/:id",
+    "method": "put",
+    "upload": false,
+    "x": 140,
+    "y": 840
+  },
+  {
+    "id": "api-messages-update-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Update",
+    "func": "const id = msg.req.params.id;\nconst m = msg.payload;\n\nconst updates = [];\nif (m.title) updates.push(`title = '${m.title}'`);\nif (m.body !== undefined) updates.push(`body = '${m.body}'`);\nif (m.target_type) updates.push(`target_type = '${m.target_type}'`);\nif (m.target_value !== undefined) updates.push(`target_value = ${m.target_value ? `'${m.target_value}'` : 'NULL'}`);\nif (m.priority) updates.push(`priority = ${m.priority}`);\nif (m.valid_from !== undefined) updates.push(`valid_from = ${m.valid_from ? `'${m.valid_from}'` : 'NULL'}`);\nif (m.valid_to !== undefined) updates.push(`valid_to = ${m.valid_to ? `'${m.valid_to}'` : 'NULL'}`);\nif (m.enabled !== undefined) updates.push(`enabled = ${m.enabled}`);\n\nmsg.payload = `UPDATE employee_messages SET ${updates.join(', ')} WHERE id = '${id}' RETURNING *`;\nreturn msg;",
+    "outputs": 1,
+    "x": 350,
+    "y": 840
+  },
+  {
+    "id": "api-messages-update-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 520,
+    "y": 840
+  },
+  {
+    "id": "api-messages-update-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { success: false, error: 'Message not found' };\n} else {\n    msg.payload = { success: true, data: msg.payload[0] };\n}\nreturn msg;",
+    "outputs": 1,
+    "x": 690,
+    "y": 840
+  },
+  {
+    "id": "api-messages-update-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 850,
+    "y": 840
+  },
+
+  {
+    "id": "api-messages-delete-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "DELETE /api/messages/:id",
+    "url": "/api/messages/:id",
+    "method": "delete",
+    "upload": false,
+    "x": 150,
+    "y": 900
+  },
+  {
+    "id": "api-messages-delete-sql",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Delete",
+    "func": "const id = msg.req.params.id;\nmsg.payload = `DELETE FROM employee_messages WHERE id = '${id}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 370,
+    "y": 900
+  },
+  {
+    "id": "api-messages-delete-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 540,
+    "y": 900
+  },
+  {
+    "id": "api-messages-delete-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = { success: true };\nreturn msg;",
+    "outputs": 1,
+    "x": 710,
+    "y": 900
+  },
+  {
+    "id": "api-messages-delete-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "200",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 870,
+    "y": 900
+  },
+
+  {
+    "id": "api-messages-employee-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /api/messages/employee/:id",
+    "url": "/api/messages/employee/:id",
+    "method": "get",
+    "upload": false,
+    "x": 180,
+    "y": 960
+  },
+  {
+    "id": "api-messages-employee-get-emp",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Get Employee",
+    "func": "msg.employeeId = msg.req.params.id;\nmsg.payload = `SELECT id, role FROM employees WHERE id = '${msg.employeeId}'`;\nreturn msg;",
+    "outputs": 1,
+    "x": 420,
+    "y": 960
+  },
+  {
+    "id": "api-messages-employee-emp-exec",
+    "type": "subflow:subflow-sql-employees",
+    "z": "flow-api",
+    "name": "",
+    "x": 600,
+    "y": 960
+  },
+  {
+    "id": "api-messages-employee-query",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Query Messages",
+    "func": "if (!msg.payload || msg.payload.length === 0) {\n    msg.statusCode = 404;\n    msg.payload = { success: false, error: 'Employee not found' };\n    return [null, msg];\n}\n\nconst emp = msg.payload[0];\nconst now = new Date().toISOString();\n\nmsg.payload = `\n    SELECT * FROM employee_messages \n    WHERE enabled = true \n    AND (valid_from IS NULL OR valid_from <= '${now}')\n    AND (valid_to IS NULL OR valid_to >= '${now}')\n    AND (\n        target_type = 'all'\n        OR (target_type = 'employee' AND target_value = '${emp.id}')\n        OR (target_type = 'role' AND target_value = '${emp.role}')\n    )\n    ORDER BY priority DESC, created_at DESC\n`;\nreturn [msg, null];",
+    "outputs": 2,
+    "x": 790,
+    "y": 960
+  },
+  {
+    "id": "api-messages-employee-msg-exec",
+    "type": "subflow:subflow-sql-attendance",
+    "z": "flow-api",
+    "name": "",
+    "x": 600,
+    "y": 1020
+  },
+  {
+    "id": "api-messages-employee-format",
+    "type": "function",
+    "z": "flow-api",
+    "name": "Format",
+    "func": "msg.payload = { success: true, data: msg.payload };\nreturn msg;",
+    "outputs": 1,
+    "x": 770,
+    "y": 1020
+  },
+  {
+    "id": "api-messages-employee-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "",
+    "statusCode": "",
+    "headers": {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
+    "x": 930,
+    "y": 1020
+  }
+]
