@@ -64,6 +64,26 @@
 
       <!-- Main Content -->
       <main class="admin-main">
+        <!-- Employees Panel (Left Sidebar) -->
+        <aside id="employees-panel" class="panel employees-panel">
+          <div class="panel-header">
+            <h2>Employees</h2>
+          </div>
+          <div class="panel-search">
+            <input 
+              type="text" 
+              id="employee-search" 
+              class="employee-search" 
+              placeholder="Search employees..."
+            >
+          </div>
+          <div class="panel-content">
+            <div id="employees-list" class="employees-list">
+              <div class="loading-state">Loading employees...</div>
+            </div>
+          </div>
+        </aside>
+
         <!-- Messages List Panel -->
         <section id="messages-panel" class="panel messages-panel">
           <div class="panel-header">
@@ -111,6 +131,27 @@
             <form id="message-form" class="message-form">
               <input type="hidden" id="message-id" name="id">
               
+              <!-- Quick Message Templates -->
+              <div class="form-row" id="message-templates-row">
+                <div class="form-group">
+                  <label>Quick Templates</label>
+                  <div class="template-buttons">
+                    <button type="button" class="template-btn" data-template="safety-shoes">
+                      🥾 Safety Shoes
+                    </button>
+                    <button type="button" class="template-btn" data-template="medical-checkup">
+                      🏥 Medical Checkup
+                    </button>
+                    <button type="button" class="template-btn" data-template="training">
+                      📚 Training
+                    </button>
+                    <button type="button" class="template-btn" data-template="document">
+                      📄 Document
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
               <div class="form-row">
                 <div class="form-group">
                   <label for="msg-title">Title <span class="required">*</span></label>
@@ -149,13 +190,17 @@
                   </select>
                 </div>
                 <div class="form-group" id="target-value-group">
-                  <label for="msg-target-value">Target Value</label>
+                  <label for="msg-target-value" id="target-value-label">Target Value</label>
+                  <select id="msg-target-value-select" name="target_value_select" class="hidden">
+                    <option value="">Select employee...</option>
+                  </select>
                   <input 
                     type="text" 
                     id="msg-target-value" 
                     name="target_value"
-                    placeholder="Enter role or employee ID"
+                    placeholder="Enter role name"
                   >
+                  <span id="target-employee-name" class="target-employee-name hidden"></span>
                 </div>
               </div>
 
