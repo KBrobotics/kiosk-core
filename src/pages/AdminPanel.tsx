@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { KioskHeader } from '@/components/kiosk/KioskHeader';
 import { EmployeeCard } from '@/components/kiosk/EmployeeCard';
+import { EmployeeMessageDialog } from '@/components/admin/EmployeeMessageDialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { kioskApi } from '@/services/api';
 import { useKioskWebSocket } from '@/hooks/useWebSocket';
+import { toast } from 'sonner';
 import { 
   Users, 
   UserCheck, 
@@ -14,9 +16,10 @@ import {
   Clock, 
   Settings,
   LogOut,
-  AlertCircle
+  AlertCircle,
+  Mail
 } from 'lucide-react';
-import type { Employee, ActiveSession } from '@/types/kiosk';
+import type { Employee, ActiveSession, KioskMessage } from '@/types/kiosk';
 import { cn } from '@/lib/utils';
 
 const AdminPanel = () => {
@@ -24,6 +27,8 @@ const AdminPanel = () => {
   const [sessions, setSessions] = useState<ActiveSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const { connected, activeSessions: wsSessions, lastUpdate } = useKioskWebSocket();
 
   // Load initial data
@@ -67,6 +72,19 @@ const AdminPanel = () => {
 
   const getEmployeeSession = (employeeId: string) => {
     return sessions.find(s => s.employee_id === employeeId);
+  };
+
+  const handleSendMessage = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setMessageDialogOpen(true);
+  };
+
+  const handleMessageSubmit = async (message: Omit<KioskMessage, 'id' | 'created_at'>) => {
+    // In a real implementation, this would call the API
+    console.log('Sending message:', message);
+    toast.success(`Message sent to ${selectedEmployee?.name}`);
+    // Mock API call - in production this would be:
+    // await kioskApi.sendMessage(message);
   };
 
   const activeCount = employees.filter(e => e.active).length;
@@ -134,9 +152,10 @@ const AdminPanel = () => {
                     <Card
                       key={employee.id}
                       className={cn(
-                        'p-4 flex items-center justify-between',
+                        'p-4 flex items-center justify-between cursor-pointer hover:bg-secondary/50 transition-colors',
                         !employee.active && 'opacity-50'
                       )}
+                      onClick={() => handleSendMessage(employee)}
                     >
                       <div className="flex items-center gap-4">
                         <div
@@ -164,18 +183,36 @@ const AdminPanel = () => {
                         </div>
                       </div>
                       
-                      {isLoggedIn && (
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-destructive border-destructive/30 hover:bg-destructive/10"
-                          onClick={() => handleForceLogout(employee.id)}
-                          disabled={actionLoading === employee.id}
+                          className="text-primary border-primary/30 hover:bg-primary/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendMessage(employee);
+                          }}
                         >
-                          <LogOut className="h-4 w-4 mr-1" />
-                          {actionLoading === employee.id ? 'Processing...' : 'Force Logout'}
+                          <Mail className="h-4 w-4 mr-1" />
+                          Message
                         </Button>
-                      )}
+                        
+                        {isLoggedIn && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleForceLogout(employee.id);
+                            }}
+                            disabled={actionLoading === employee.id}
+                          >
+                            <LogOut className="h-4 w-4 mr-1" />
+                            {actionLoading === employee.id ? '...' : 'Logout'}
+                          </Button>
+                        )}
+                      </div>
                     </Card>
                   );
                 })}
@@ -252,6 +289,14 @@ const AdminPanel = () => {
           InfoKiosk Admin Panel • Demo Mode Active
         </p>
       </footer>
+
+      {/* Message Dialog */}
+      <EmployeeMessageDialog
+        employee={selectedEmployee}
+        open={messageDialogOpen}
+        onOpenChange={setMessageDialogOpen}
+        onSend={handleMessageSubmit}
+      />
     </div>
   );
 };
