@@ -15,6 +15,14 @@ export const KIOSK_CONFIG = {
   // Ping interval to keep connection alive
   WS_PING_INTERVAL: 30000, // ms
   
+  // Worker Kiosk Timeouts (in milliseconds)
+  PENDING_UID_TIMEOUT: 15000,        // 15 seconds to press button after card scan
+  RESULT_DISPLAY_TIMEOUT: 4000,      // 4 seconds to show success/error
+  MESSAGES_DISPLAY_TIMEOUT: 15000,   // 15 seconds to read messages
+  
+  // HID RFID settings
+  HID_INPUT_TIMEOUT: 100, // Max time between keystrokes for HID input
+  
   // Demo mode - uses mock data instead of real API
   DEMO_MODE: import.meta.env.VITE_DEMO_MODE !== 'false',
 } as const;
