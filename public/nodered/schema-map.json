@@ -1,0 +1,71 @@
+{
+  "employees_db": {
+    "connection": {
+      "name": "employees-db",
+      "host": "localhost",
+      "port": 5432,
+      "database": "employees_db",
+      "user": "postgres",
+      "password": ""
+    },
+    "tables": {
+      "employees": {
+        "name": "employees",
+        "columns": {
+          "id": "id",
+          "name": "name",
+          "role": "role",
+          "rfid_uid": "rfid_uid",
+          "active": "active"
+        }
+      }
+    }
+  },
+  "attendance_db": {
+    "connection": {
+      "name": "attendance-db",
+      "host": "localhost",
+      "port": 5432,
+      "database": "attendance_db",
+      "user": "postgres",
+      "password": ""
+    },
+    "tables": {
+      "active_sessions": {
+        "name": "active_sessions",
+        "columns": {
+          "employee_id": "employee_id",
+          "rfid_uid": "rfid_uid",
+          "login_ts": "login_ts",
+          "source": "source"
+        }
+      },
+      "attendance_events": {
+        "name": "attendance_events",
+        "columns": {
+          "id": "id",
+          "employee_id": "employee_id",
+          "rfid_uid": "rfid_uid",
+          "event_type": "event_type",
+          "ts": "ts",
+          "source": "source"
+        }
+      },
+      "employee_messages": {
+        "name": "employee_messages",
+        "columns": {
+          "id": "id",
+          "title": "title",
+          "body": "body",
+          "target_type": "target_type",
+          "target_value": "target_value",
+          "priority": "priority",
+          "valid_from": "valid_from",
+          "valid_to": "valid_to",
+          "enabled": "enabled",
+          "created_at": "created_at"
+        }
+      }
+    }
+  }
+}
