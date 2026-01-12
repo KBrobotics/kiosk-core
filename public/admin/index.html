@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>InfoKiosk - Admin Panel</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Login Container -->
+    <div id="login-container" class="container login-container">
+      <div class="login-card">
+        <div class="login-header">
+          <h1>InfoKiosk Admin</h1>
+          <p>Sign in to manage messages</p>
+        </div>
+        <form id="login-form" class="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input 
+              type="text" 
+              id="username" 
+              name="username" 
+              autocomplete="username"
+              required
+            >
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              autocomplete="current-password"
+              required
+            >
+          </div>
+          <div id="login-error" class="error-message hidden"></div>
+          <button type="submit" id="login-btn" class="btn btn-primary btn-block">
+            Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Admin Container -->
+    <div id="admin-container" class="container admin-container hidden">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="header-left">
+          <h1>InfoKiosk Admin</h1>
+          <span class="connection-status" id="connection-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Connecting...</span>
+          </span>
+        </div>
+        <div class="header-right">
+          <span id="admin-user" class="admin-user"></span>
+          <button id="logout-btn" class="btn btn-secondary btn-sm">Logout</button>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="admin-main">
+        <!-- Messages List Panel -->
+        <section id="messages-panel" class="panel messages-panel">
+          <div class="panel-header">
+            <h2>Messages</h2>
+            <button id="new-message-btn" class="btn btn-primary">
+              + New Message
+            </button>
+          </div>
+          <div class="panel-content">
+            <div class="table-container">
+              <table id="messages-table" class="data-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Title</th>
+                    <th>Target</th>
+                    <th>Priority</th>
+                    <th>Valid From</th>
+                    <th>Valid To</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="messages-tbody">
+                  <tr class="loading-row">
+                    <td colspan="7">Loading messages...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="no-messages" class="empty-state hidden">
+              <p>No messages yet. Create your first message!</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Message Editor Panel -->
+        <section id="editor-panel" class="panel editor-panel hidden">
+          <div class="panel-header">
+            <h2 id="editor-title">New Message</h2>
+            <button id="close-editor-btn" class="btn btn-icon" title="Close">
+              ✕
+            </button>
+          </div>
+          <div class="panel-content">
+            <form id="message-form" class="message-form">
+              <input type="hidden" id="message-id" name="id">
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="msg-title">Title <span class="required">*</span></label>
+                  <input 
+                    type="text" 
+                    id="msg-title" 
+                    name="title" 
+                    maxlength="100"
+                    required
+                  >
+                  <span class="char-count"><span id="title-count">0</span>/100</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="msg-body">Body <span class="required">*</span></label>
+                  <textarea 
+                    id="msg-body" 
+                    name="body" 
+                    rows="4"
+                    maxlength="1000"
+                    required
+                  ></textarea>
+                  <span class="char-count"><span id="body-count">0</span>/1000</span>
+                </div>
+              </div>
+
+              <div class="form-row form-row-2col">
+                <div class="form-group">
+                  <label for="msg-target-type">Target Type <span class="required">*</span></label>
+                  <select id="msg-target-type" name="target_type" required>
+                    <option value="all">All Employees</option>
+                    <option value="role">By Role</option>
+                    <option value="employee">Specific Employee</option>
+                  </select>
+                </div>
+                <div class="form-group" id="target-value-group">
+                  <label for="msg-target-value">Target Value</label>
+                  <input 
+                    type="text" 
+                    id="msg-target-value" 
+                    name="target_value"
+                    placeholder="Enter role or employee ID"
+                  >
+                </div>
+              </div>
+
+              <div class="form-row form-row-3col">
+                <div class="form-group">
+                  <label for="msg-priority">Priority</label>
+                  <select id="msg-priority" name="priority">
+                    <option value="1">Low (1)</option>
+                    <option value="2" selected>Normal (2)</option>
+                    <option value="3">High (3)</option>
+                    <option value="4">Urgent (4)</option>
+                    <option value="5">Critical (5)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="msg-valid-from">Valid From</label>
+                  <input 
+                    type="datetime-local" 
+                    id="msg-valid-from" 
+                    name="valid_from"
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="msg-valid-to">Valid To</label>
+                  <input 
+                    type="datetime-local" 
+                    id="msg-valid-to" 
+                    name="valid_to"
+                  >
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group form-group-inline">
+                  <label class="toggle-label">
+                    <input type="checkbox" id="msg-enabled" name="enabled" checked>
+                    <span class="toggle-switch"></span>
+                    <span class="toggle-text">Enabled</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="form-error" class="error-message hidden"></div>
+
+              <div class="form-actions">
+                <button type="button" id="cancel-btn" class="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" id="save-btn" class="btn btn-primary">
+                  Save Message
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <!-- Toast Notifications -->
+      <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <h3>Delete Message</h3>
+        <p>Are you sure you want to delete "<span id="delete-message-title"></span>"?</p>
+        <p class="warning-text">This action cannot be undone.</p>
+        <div class="modal-actions">
+          <button id="cancel-delete-btn" class="btn btn-secondary">Cancel</button>
+          <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
