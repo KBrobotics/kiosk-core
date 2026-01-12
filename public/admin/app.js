@@ -2,7 +2,7 @@
  * InfoKiosk Admin UI - Message Management Application
  * 
  * Handles authentication, CRUD operations for messages,
- * and real-time updates via WebSocket
+ * employee management, and real-time updates via WebSocket
  */
 
 // ============================================
@@ -34,6 +34,32 @@ const CONFIG = {
 };
 
 // ============================================
+// MESSAGE TEMPLATES
+// ============================================
+const MESSAGE_TEMPLATES = {
+  'safety-shoes': {
+    title: 'New Safety Shoes Ready for Pickup',
+    body: 'Your new safety shoes are ready for pickup from the office. Please collect them at your earliest convenience during office hours (8:00 - 16:00).',
+    priority: 3
+  },
+  'medical-checkup': {
+    title: 'Medical Checkup Required',
+    body: 'You are due for your regular medical checkup. Please contact HR to schedule an appointment within the next 2 weeks.',
+    priority: 4
+  },
+  'training': {
+    title: 'Training Session Required',
+    body: 'You have been scheduled for a mandatory training session. Please check with your supervisor for the date and time.',
+    priority: 3
+  },
+  'document': {
+    title: 'Document Required',
+    body: 'HR requires updated documentation from you. Please visit the HR office to submit the necessary paperwork.',
+    priority: 2
+  }
+};
+
+// ============================================
 // STATE MANAGEMENT
 // ============================================
 const state = {
@@ -41,10 +67,13 @@ const state = {
   username: '',
   authToken: '',
   messages: [],
+  employees: [],
   editingMessageId: null,
+  selectedEmployeeId: null,
   isLoading: false,
   deleteTargetId: null,
-  connected: false
+  connected: false,
+  employeeSearchQuery: ''
 };
 
 // ============================================
@@ -67,6 +96,11 @@ function cacheElements() {
   elements.logoutBtn = document.getElementById('logout-btn');
   elements.connectionStatus = document.getElementById('connection-status');
   
+  // Employees
+  elements.employeesPanel = document.getElementById('employees-panel');
+  elements.employeesList = document.getElementById('employees-list');
+  elements.employeeSearch = document.getElementById('employee-search');
+  
   // Messages
   elements.messagesPanel = document.getElementById('messages-panel');
   elements.messagesTbody = document.getElementById('messages-tbody');
@@ -83,7 +117,11 @@ function cacheElements() {
   elements.msgBody = document.getElementById('msg-body');
   elements.msgTargetType = document.getElementById('msg-target-type');
   elements.msgTargetValue = document.getElementById('msg-target-value');
+  elements.msgTargetValueSelect = document.getElementById('msg-target-value-select');
   elements.targetValueGroup = document.getElementById('target-value-group');
+  elements.targetValueLabel = document.getElementById('target-value-label');
+  elements.targetEmployeeName = document.getElementById('target-employee-name');
+  elements.messageTemplatesRow = document.getElementById('message-templates-row');
   elements.msgPriority = document.getElementById('msg-priority');
   elements.msgValidFrom = document.getElementById('msg-valid-from');
   elements.msgValidTo = document.getElementById('msg-valid-to');
@@ -316,6 +354,7 @@ async function login(username, password) {
 function logout() {
   clearSession();
   state.messages = [];
+  state.employees = [];
   state.editingMessageId = null;
   disconnectWebSocket();
   showLoginUI();
@@ -365,6 +404,28 @@ async function fetchMessages() {
   } catch (error) {
     log('error', 'Failed to fetch messages:', error);
     showToast('Failed to load messages', 'error');
+  }
+}
+
+async function fetchEmployees() {
+  try {
+    state.employees = await apiRequest('GET', '/employees');
+    renderEmployees();
+    populateEmployeeSelect();
+    log('debug', 'Fetched employees:', state.employees.length);
+  } catch (error) {
+    log('error', 'Failed to fetch employees:', error);
+    // Use mock data as fallback for demo
+    state.employees = [
+      { id: '1', name: 'John Smith', role: 'Technician', rfid_uid: 'A1B2C3D4', active: true },
+      { id: '2', name: 'Sarah Johnson', role: 'Engineer', rfid_uid: 'E5F6G7H8', active: true },
+      { id: '3', name: 'Mike Davis', role: 'Supervisor', rfid_uid: 'I9J0K1L2', active: true },
+      { id: '4', name: 'Emily Brown', role: 'Operator', rfid_uid: 'M3N4O5P6', active: true },
+      { id: '5', name: 'David Wilson', role: 'Technician', rfid_uid: 'Q7R8S9T0', active: false },
+      { id: '6', name: 'Lisa Anderson', role: 'Engineer', rfid_uid: 'U1V2W3X4', active: true },
+    ];
+    renderEmployees();
+    populateEmployeeSelect();
   }
 }
 
@@ -465,6 +526,10 @@ function handleWebSocketMessage(message) {
       // Handle individual message updates
       fetchMessages();
       break;
+      
+    case 'employees_updated':
+      fetchEmployees();
+      break;
   }
 }
 
@@ -502,6 +567,7 @@ function showAdminUI() {
   elements.adminContainer.classList.remove('hidden');
   elements.adminUser.textContent = state.username;
   renderMessages();
+  renderEmployees();
 }
 
 function showLoginError(message) {
@@ -513,6 +579,73 @@ function hideLoginError() {
   elements.loginError.classList.add('hidden');
 }
 
+// ============================================
+// EMPLOYEES RENDERING
+// ============================================
+function renderEmployees() {
+  const container = elements.employeesList;
+  if (!container) return;
+  
+  const query = state.employeeSearchQuery.toLowerCase();
+  
+  // Filter employees based on search
+  const filteredEmployees = state.employees.filter(emp => {
+    if (!query) return true;
+    return emp.name.toLowerCase().includes(query) || 
+           emp.role.toLowerCase().includes(query);
+  });
+  
+  if (filteredEmployees.length === 0) {
+    container.innerHTML = '<div class="empty-state">No employees found</div>';
+    return;
+  }
+  
+  container.innerHTML = filteredEmployees.map(emp => {
+    const initials = emp.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const isSelected = state.selectedEmployeeId === emp.id;
+    
+    return `
+      <div class="employee-card ${emp.active ? '' : 'inactive'} ${isSelected ? 'selected' : ''}" 
+           data-id="${escapeHtml(emp.id)}"
+           onclick="handleEmployeeClick('${escapeHtml(emp.id)}')">
+        <div class="employee-avatar">${initials}</div>
+        <div class="employee-info">
+          <div class="employee-name">${escapeHtml(emp.name)}</div>
+          <div class="employee-role">${escapeHtml(emp.role)}</div>
+        </div>
+        <button class="employee-message-btn" 
+                onclick="event.stopPropagation(); handleSendMessageToEmployee('${escapeHtml(emp.id)}')"
+                title="Send message to ${escapeHtml(emp.name)}">
+          ✉️ Message
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function populateEmployeeSelect() {
+  const select = elements.msgTargetValueSelect;
+  if (!select) return;
+  
+  select.innerHTML = '<option value="">Select employee...</option>' +
+    state.employees
+      .filter(emp => emp.active)
+      .map(emp => `<option value="${escapeHtml(emp.id)}">${escapeHtml(emp.name)} (${escapeHtml(emp.role)})</option>`)
+      .join('');
+}
+
+function getEmployeeById(id) {
+  return state.employees.find(emp => emp.id === id);
+}
+
+function getEmployeeNameById(id) {
+  const emp = getEmployeeById(id);
+  return emp ? emp.name : null;
+}
+
+// ============================================
+// MESSAGES RENDERING
+// ============================================
 function renderMessages() {
   const tbody = elements.messagesTbody;
   
@@ -598,7 +731,9 @@ function getTargetDisplay(msg) {
     case 'role':
       return { type: 'Role', value: msg.target_value || '-' };
     case 'employee':
-      return { type: 'Employee', value: msg.target_value || '-' };
+      // Try to get employee name
+      const empName = getEmployeeNameById(msg.target_value);
+      return { type: 'Employee', value: empName || msg.target_value || '-' };
     default:
       return { type: msg.target_type, value: msg.target_value || '-' };
   }
@@ -631,11 +766,17 @@ function showEditor(message = null) {
   elements.msgTitle.value = message?.title || '';
   elements.msgBody.value = message?.body || '';
   elements.msgTargetType.value = message?.target_type || 'all';
-  elements.msgTargetValue.value = message?.target_value || '';
   elements.msgPriority.value = message?.priority || 2;
   elements.msgValidFrom.value = message?.valid_from ? formatDateTimeLocal(message.valid_from) : '';
   elements.msgValidTo.value = message?.valid_to ? formatDateTimeLocal(message.valid_to) : '';
   elements.msgEnabled.checked = message?.enabled !== false;
+  
+  // Handle target value based on type
+  if (message?.target_type === 'employee') {
+    elements.msgTargetValueSelect.value = message.target_value || '';
+  } else {
+    elements.msgTargetValue.value = message?.target_value || '';
+  }
   
   updateTargetValueVisibility();
   updateCharCounts();
@@ -647,6 +788,7 @@ function showEditor(message = null) {
 function hideEditor() {
   elements.editorPanel.classList.add('hidden');
   state.editingMessageId = null;
+  state.selectedEmployeeId = null;
   resetForm();
 }
 
@@ -671,10 +813,42 @@ function updateTargetValueVisibility() {
   if (targetType === 'all') {
     elements.targetValueGroup.style.visibility = 'hidden';
     elements.msgTargetValue.required = false;
-  } else {
+    elements.msgTargetValueSelect.classList.add('hidden');
+    elements.msgTargetValue.classList.remove('hidden');
+    elements.targetEmployeeName.classList.add('hidden');
+  } else if (targetType === 'employee') {
     elements.targetValueGroup.style.visibility = 'visible';
+    elements.msgTargetValueSelect.classList.remove('hidden');
+    elements.msgTargetValue.classList.add('hidden');
+    elements.msgTargetValueSelect.required = true;
+    elements.msgTargetValue.required = false;
+    elements.targetValueLabel.textContent = 'Select Employee';
+    updateEmployeeNameDisplay();
+  } else {
+    // Role
+    elements.targetValueGroup.style.visibility = 'visible';
+    elements.msgTargetValueSelect.classList.add('hidden');
+    elements.msgTargetValue.classList.remove('hidden');
     elements.msgTargetValue.required = true;
-    elements.msgTargetValue.placeholder = targetType === 'role' ? 'Enter role name' : 'Enter employee ID';
+    elements.msgTargetValueSelect.required = false;
+    elements.msgTargetValue.placeholder = 'Enter role name (e.g., Technician)';
+    elements.targetValueLabel.textContent = 'Role Name';
+    elements.targetEmployeeName.classList.add('hidden');
+  }
+}
+
+function updateEmployeeNameDisplay() {
+  const selectedId = elements.msgTargetValueSelect.value;
+  if (selectedId) {
+    const name = getEmployeeNameById(selectedId);
+    if (name) {
+      elements.targetEmployeeName.textContent = `Message will be sent to: ${name}`;
+      elements.targetEmployeeName.classList.remove('hidden');
+    } else {
+      elements.targetEmployeeName.classList.add('hidden');
+    }
+  } else {
+    elements.targetEmployeeName.classList.add('hidden');
   }
 }
 
@@ -743,6 +917,7 @@ async function handleLoginSubmit(e) {
   try {
     await login(username, password);
     showAdminUI();
+    fetchEmployees();
     connectWebSocket();
   } catch (error) {
     showLoginError(error.message);
@@ -755,12 +930,21 @@ async function handleLoginSubmit(e) {
 async function handleFormSubmit(e) {
   e.preventDefault();
   
+  // Get target value based on target type
+  const targetType = elements.msgTargetType.value;
+  let targetValue = null;
+  if (targetType === 'employee') {
+    targetValue = elements.msgTargetValueSelect.value;
+  } else if (targetType === 'role') {
+    targetValue = elements.msgTargetValue.value;
+  }
+  
   const formData = {
     id: elements.messageId.value || null,
     title: elements.msgTitle.value,
     body: elements.msgBody.value,
-    target_type: elements.msgTargetType.value,
-    target_value: elements.msgTargetValue.value,
+    target_type: targetType,
+    target_value: targetValue,
     priority: elements.msgPriority.value,
     valid_from: elements.msgValidFrom.value || null,
     valid_to: elements.msgValidTo.value || null,
@@ -846,6 +1030,47 @@ async function handleConfirmDelete() {
 }
 
 // ============================================
+// EMPLOYEE HANDLERS
+// ============================================
+window.handleEmployeeClick = function(id) {
+  state.selectedEmployeeId = state.selectedEmployeeId === id ? null : id;
+  renderEmployees();
+};
+
+window.handleSendMessageToEmployee = function(employeeId) {
+  const employee = getEmployeeById(employeeId);
+  if (!employee) return;
+  
+  // Open editor with employee pre-selected
+  showEditor();
+  
+  // Set target type to employee
+  elements.msgTargetType.value = 'employee';
+  updateTargetValueVisibility();
+  
+  // Select the employee
+  elements.msgTargetValueSelect.value = employeeId;
+  updateEmployeeNameDisplay();
+  
+  // Update editor title
+  elements.editorTitle.textContent = `New Message for ${employee.name}`;
+  
+  log('debug', 'Opening editor for employee:', employee.name);
+};
+
+function handleTemplateClick(templateId) {
+  const template = MESSAGE_TEMPLATES[templateId];
+  if (!template) return;
+  
+  elements.msgTitle.value = template.title;
+  elements.msgBody.value = template.body;
+  elements.msgPriority.value = template.priority;
+  
+  updateCharCounts();
+  showToast('Template applied', 'success');
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 function init() {
@@ -867,11 +1092,33 @@ function init() {
   elements.confirmDeleteBtn.addEventListener('click', handleConfirmDelete);
   elements.deleteModal.querySelector('.modal-overlay').addEventListener('click', hideDeleteModal);
   
+  // Employee search
+  if (elements.employeeSearch) {
+    elements.employeeSearch.addEventListener('input', (e) => {
+      state.employeeSearchQuery = e.target.value;
+      renderEmployees();
+    });
+  }
+  
+  // Employee select change
+  if (elements.msgTargetValueSelect) {
+    elements.msgTargetValueSelect.addEventListener('change', updateEmployeeNameDisplay);
+  }
+  
+  // Template buttons
+  document.querySelectorAll('.template-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const templateId = btn.dataset.template;
+      handleTemplateClick(templateId);
+    });
+  });
+  
   // Check for existing session
   if (loadSession()) {
     log('info', 'Session restored for:', state.username);
     showAdminUI();
     fetchMessages();
+    fetchEmployees();
     connectWebSocket();
   } else {
     showLoginUI();
@@ -895,6 +1142,7 @@ if (typeof window !== 'undefined') {
     state,
     CONFIG,
     fetchMessages,
+    fetchEmployees,
     showToast,
     logout
   };
