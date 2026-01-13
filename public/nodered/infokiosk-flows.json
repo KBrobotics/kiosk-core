@@ -798,6 +798,32 @@
     "wires": [["static-html-out"]]
   },
   {
+    "id": "static-board-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /board",
+    "url": "/board",
+    "method": "get",
+    "upload": false,
+    "x": 120,
+    "y": 700,
+    "wires": [["static-board-file"]]
+  },
+  {
+    "id": "static-board-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "board/index.html",
+    "filename": "static/board/index.html",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 330,
+    "y": 700,
+    "wires": [["static-html-out"]]
+  },
+  {
     "id": "static-html-out",
     "type": "http response",
     "z": "flow-api",
@@ -807,7 +833,7 @@
       "Content-Type": "text/html"
     },
     "x": 510,
-    "y": 610,
+    "y": 650,
     "wires": []
   }
 ]
