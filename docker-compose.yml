@@ -12,9 +12,6 @@ services:
       - "1880:1880"
     volumes:
       - nodered_data:/data
-      - ./public/nodered/infokiosk-flows.json:/data/flows.json:ro
-      - ./public/worker:/data/static/worker:ro
-      - ./public/admin:/data/static/admin:ro
     environment:
       - TZ=Europe/Warsaw
     depends_on:
