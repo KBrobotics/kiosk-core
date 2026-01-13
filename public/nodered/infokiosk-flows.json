@@ -772,6 +772,59 @@
     "wires": [["static-html-out"]]
   },
   {
+    "id": "static-worker-css-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /worker/styles.css",
+    "url": "/worker/styles.css",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 620,
+    "wires": [["static-worker-css-file"]]
+  },
+  {
+    "id": "static-worker-css-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "worker/styles.css",
+    "filename": "static/worker/styles.css",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 620,
+    "wires": [["static-css-out"]]
+  },
+  {
+    "id": "static-worker-js-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /worker/app.js",
+    "url": "/worker/app.js",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 660,
+    "wires": [["static-worker-js-file"]]
+  },
+  {
+    "id": "static-worker-js-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "worker/app.js",
+    "filename": "static/worker/app.js",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 660,
+    "wires": [["static-js-out"]]
+  },
+
+  {
     "id": "static-admin-http",
     "type": "http in",
     "z": "flow-api",
@@ -780,7 +833,7 @@
     "method": "get",
     "upload": false,
     "x": 120,
-    "y": 640,
+    "y": 720,
     "wires": [["static-admin-file"]]
   },
   {
@@ -794,9 +847,62 @@
     "sendError": false,
     "encoding": "utf8",
     "x": 330,
-    "y": 640,
+    "y": 720,
     "wires": [["static-html-out"]]
   },
+  {
+    "id": "static-admin-css-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /admin/styles.css",
+    "url": "/admin/styles.css",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 760,
+    "wires": [["static-admin-css-file"]]
+  },
+  {
+    "id": "static-admin-css-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "admin/styles.css",
+    "filename": "static/admin/styles.css",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 760,
+    "wires": [["static-css-out"]]
+  },
+  {
+    "id": "static-admin-js-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /admin/app.js",
+    "url": "/admin/app.js",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 800,
+    "wires": [["static-admin-js-file"]]
+  },
+  {
+    "id": "static-admin-js-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "admin/app.js",
+    "filename": "static/admin/app.js",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 800,
+    "wires": [["static-js-out"]]
+  },
+
   {
     "id": "static-board-http",
     "type": "http in",
@@ -806,7 +912,7 @@
     "method": "get",
     "upload": false,
     "x": 120,
-    "y": 700,
+    "y": 860,
     "wires": [["static-board-file"]]
   },
   {
@@ -820,9 +926,62 @@
     "sendError": false,
     "encoding": "utf8",
     "x": 330,
-    "y": 700,
+    "y": 860,
     "wires": [["static-html-out"]]
   },
+  {
+    "id": "static-board-css-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /board/styles.css",
+    "url": "/board/styles.css",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 900,
+    "wires": [["static-board-css-file"]]
+  },
+  {
+    "id": "static-board-css-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "board/styles.css",
+    "filename": "static/board/styles.css",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 900,
+    "wires": [["static-css-out"]]
+  },
+  {
+    "id": "static-board-js-http",
+    "type": "http in",
+    "z": "flow-api",
+    "name": "GET /board/app.js",
+    "url": "/board/app.js",
+    "method": "get",
+    "upload": false,
+    "x": 140,
+    "y": 940,
+    "wires": [["static-board-js-file"]]
+  },
+  {
+    "id": "static-board-js-file",
+    "type": "file in",
+    "z": "flow-api",
+    "name": "board/app.js",
+    "filename": "static/board/app.js",
+    "format": "utf8",
+    "chunk": false,
+    "sendError": false,
+    "encoding": "utf8",
+    "x": 350,
+    "y": 940,
+    "wires": [["static-js-out"]]
+  },
+
   {
     "id": "static-html-out",
     "type": "http response",
@@ -832,8 +991,34 @@
     "headers": {
       "Content-Type": "text/html"
     },
-    "x": 510,
-    "y": 650,
+    "x": 550,
+    "y": 720,
+    "wires": []
+  },
+  {
+    "id": "static-css-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "CSS",
+    "statusCode": "200",
+    "headers": {
+      "Content-Type": "text/css"
+    },
+    "x": 550,
+    "y": 760,
+    "wires": []
+  },
+  {
+    "id": "static-js-out",
+    "type": "http response",
+    "z": "flow-api",
+    "name": "JS",
+    "statusCode": "200",
+    "headers": {
+      "Content-Type": "application/javascript"
+    },
+    "x": 550,
+    "y": 800,
     "wires": []
   }
 ]
