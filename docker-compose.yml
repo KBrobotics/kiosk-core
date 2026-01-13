@@ -1,0 +1,49 @@
+version: '3.8'
+
+# InfoKiosk - Raspberry Pi ARM64/ARM32 Compatible
+# Deploy via Portainer or: docker-compose up -d
+
+services:
+  nodered:
+    image: nodered/node-red:latest
+    container_name: infokiosk
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - nodered_data:/data
+      - ./public/nodered/infokiosk-flows.json:/data/flows.json:ro
+      - ./public/worker:/data/static/worker:ro
+      - ./public/admin:/data/static/admin:ro
+    environment:
+      - TZ=Europe/Warsaw
+      - NODE_RED_ENABLE_PROJECTS=false
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1880"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # ARM compatible - works on Raspberry Pi 3/4/5
+
+  mysql:
+    image: mysql:8.0
+    container_name: infokiosk-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: infokiosk_root
+      MYSQL_DATABASE: infokiosk
+      MYSQL_USER: infokiosk
+      MYSQL_PASSWORD: infokiosk_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Note: mysql:8.0 supports ARM64 (Pi 4/5)
+    # For Pi 3 (ARM32), use: image: hypriot/rpi-mysql
+
+volumes:
+  nodered_data:
+  mysql_data:

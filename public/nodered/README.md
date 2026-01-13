@@ -1,101 +1,95 @@
-# InfoKiosk Node-RED Backend (Raspberry Pi)
+# InfoKiosk - Raspberry Pi Deployment
 
-Lightweight Node-RED backend for Raspberry Pi deployment.
+Lightweight attendance kiosk for Raspberry Pi (ARM64/ARM32).
 
-## Requirements
+## Quick Start (Portainer)
 
-- Node-RED
-- MySQL/MariaDB
-- node-red-node-mysql
-
-## Quick Install on Raspberry Pi
-
+1. **Clone repo on Pi:**
 ```bash
-# Clone repository
 git clone https://github.com/YOUR_REPO/infokiosk.git
 cd infokiosk
+```
 
-# Install Node-RED (if not installed)
+2. **In Portainer:** Stacks → Add Stack → Upload `docker-compose.yml`
+
+3. **Install MySQL node** (one-time, after first deploy):
+```bash
+docker exec -it infokiosk npm install node-red-node-mysql
+docker restart infokiosk
+```
+
+4. **Import flow:**
+   - Open `http://<PI_IP>:1880`
+   - Menu → Import → Upload `public/nodered/infokiosk-flows.json`
+   - Configure MySQL node: host=`infokiosk-db`, user=`infokiosk`, pass=`infokiosk_pass`, db=`infokiosk`
+   - Deploy
+
+5. **Access:**
+   - Worker Kiosk: `http://<PI_IP>:1880/worker`
+   - Admin Panel: `http://<PI_IP>:1880/admin`
+
+---
+
+## Native Install (No Docker)
+
+```bash
+# 1. Install Node-RED
 bash <(curl -sL https://raw.githubusercontent.com/node-red/linux-installers/master/deb/update-nodejs-and-nodered)
 
-# Install MySQL node
-cd ~/.node-red
-npm install node-red-node-mysql
+# 2. Install MariaDB
+sudo apt install mariadb-server -y
+sudo mysql_secure_installation
 
-# Start Node-RED
-node-red
-```
+# 3. Setup database
+sudo mysql -e "CREATE DATABASE infokiosk; CREATE USER 'infokiosk'@'localhost' IDENTIFIED BY 'your_password'; GRANT ALL PRIVILEGES ON infokiosk.* TO 'infokiosk'@'localhost'; FLUSH PRIVILEGES;"
 
-## MySQL Setup
+# 4. Install MySQL node
+cd ~/.node-red && npm install node-red-node-mysql
 
-```sql
-CREATE DATABASE infokiosk;
-CREATE USER 'infokiosk'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON infokiosk.* TO 'infokiosk'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-Tables are created automatically on first startup.
-
-## Import Flow
-
-1. Open Node-RED: `http://raspberrypi:1880`
-2. Menu → Import → Select `infokiosk-flows.json`
-3. Deploy
-4. Configure MySQL node with your credentials
-
-## Static Files
-
-Copy static files to Node-RED directory:
-```bash
+# 5. Copy static files
 cp -r public/worker ~/.node-red/static/
 cp -r public/admin ~/.node-red/static/
+
+# 6. Enable & start
+sudo systemctl enable nodered.service
+sudo systemctl start nodered.service
 ```
+
+Then import `infokiosk-flows.json` via Node-RED UI.
+
+---
 
 ## Endpoints
 
-| Method | URL | Description |
-|--------|-----|-------------|
-| GET | /worker | Worker kiosk UI |
-| GET | /admin | Admin panel |
-| POST | /api/rfid | RFID card scan |
-| GET | /api/employees | List employees |
-| GET | /api/board/today | Active sessions |
-| GET | /api/messages | List messages |
-| POST | /api/messages | Create message |
-| PUT | /api/messages/:id | Update message |
-| DELETE | /api/messages/:id | Delete message |
-| WS | /ws | WebSocket |
+| URL | Description |
+|-----|-------------|
+| `/worker` | Worker kiosk UI |
+| `/admin` | Admin panel |
+| `/api/rfid` | POST - RFID scan |
+| `/api/employees` | GET - List employees |
+| `/api/board/today` | GET - Active sessions |
+| `/api/messages` | GET/POST - Messages |
+| `/ws` | WebSocket |
 
-## Portainer Deployment
+---
 
-If using Portainer, create a stack with:
+## Raspberry Pi Compatibility
 
-```yaml
-version: '3'
-services:
-  nodered:
-    image: nodered/node-red:latest
-    ports:
-      - "1880:1880"
-    volumes:
-      - ./data:/data
-      - ./static:/data/static
-    environment:
-      - TZ=Europe/Warsaw
-    restart: unless-stopped
-```
+| Pi Model | Docker | Native |
+|----------|--------|--------|
+| Pi 5 | ✅ | ✅ |
+| Pi 4 | ✅ | ✅ |
+| Pi 3 | ⚠️ Use hypriot/rpi-mysql | ✅ |
+| Pi Zero 2 | ⚠️ Slow | ✅ |
 
-Then install mysql node inside container:
-```bash
-docker exec -it nodered_container npm install node-red-node-mysql
-```
+---
 
-## No Docker Alternative
+## Auto-Start Kiosk (Native)
 
-For native install (lighter):
-```bash
-# Enable Node-RED service
-sudo systemctl enable nodered.service
-sudo systemctl start nodered.service
+Create `/etc/xdg/autostart/kiosk.desktop`:
+```ini
+[Desktop Entry]
+Type=Application
+Name=InfoKiosk
+Exec=chromium-browser --kiosk --noerrdialogs http://localhost:1880/worker
 ```
