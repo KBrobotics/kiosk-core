@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance Board - InfoKiosk</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <h1 class="header-title">Attendance Board</h1>
+        <p class="header-subtitle">Currently present employees</p>
+      </div>
+      <div class="header-right">
+        <div class="connection-status" id="connectionStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">Connecting...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stats-left">
+        <div class="employee-count">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span class="count" id="employeeCount">0</span>
+          <span class="label">present</span>
+        </div>
+        <div class="last-update">
+          Last updated: <span id="lastUpdate">--:--:--</span>
+        </div>
+      </div>
+      <div class="stats-right">
+        <button class="refresh-btn" id="refreshBtn" title="Refresh">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6"/>
+            <path d="M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Clock -->
+    <div class="clock-container">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="date" id="date">Monday, January 1, 2024</div>
+    </div>
+
+    <!-- Employee Grid -->
+    <main class="main-content">
+      <div class="employee-grid" id="employeeGrid">
+        <!-- Employee cards will be inserted here -->
+      </div>
+      
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3>No Employees Present</h3>
+        <p>Employees will appear here when they log in</p>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Real-time updates via WebSocket • InfoKiosk System</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

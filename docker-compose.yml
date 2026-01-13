@@ -2,6 +2,7 @@ version: '3.8'
 
 # InfoKiosk - Raspberry Pi
 # Deploy via Portainer: Stacks → Add → Upload
+# Set GITHUB_REPO environment variable to your repo (e.g., username/infokiosk)
 
 services:
   nodered:
@@ -14,6 +15,45 @@ services:
       - nodered_data:/data
     environment:
       - TZ=Europe/Warsaw
+      - GITHUB_REPO=${GITHUB_REPO:-}
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        # Download static files from GitHub on first run
+        if [ -n "$$GITHUB_REPO" ] && [ ! -f /data/static/.installed ]; then
+          echo "=== Downloading static files from GitHub ==="
+          mkdir -p /data/static
+          cd /tmp
+          wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
+          if [ -f repo.tar.gz ]; then
+            tar -xzf repo.tar.gz
+            REPO_DIR=$$(ls -d */ | head -1)
+            if [ -d "$$REPO_DIR/public/worker" ]; then
+              cp -r "$$REPO_DIR/public/worker" /data/static/
+              echo "✓ Worker UI installed"
+            fi
+            if [ -d "$$REPO_DIR/public/admin" ]; then
+              cp -r "$$REPO_DIR/public/admin" /data/static/
+              echo "✓ Admin UI installed"
+            fi
+            if [ -d "$$REPO_DIR/public/board" ]; then
+              cp -r "$$REPO_DIR/public/board" /data/static/
+              echo "✓ Board UI installed"
+            fi
+            if [ -d "$$REPO_DIR/public/nodered" ]; then
+              cp -r "$$REPO_DIR/public/nodered" /data/static/
+              echo "✓ Node-RED flows installed"
+            fi
+            touch /data/static/.installed
+            echo "=== Static files installed successfully ==="
+            rm -rf /tmp/*
+          else
+            echo "✗ Failed to download from GitHub"
+          fi
+        fi
+        # Start Node-RED
+        exec node-red
     depends_on:
       - mariadb
 
