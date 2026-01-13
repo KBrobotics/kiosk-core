@@ -9,7 +9,7 @@ services:
     container_name: infokiosk
     restart: unless-stopped
     ports:
-      - "1881:1880"
+      - "8002:1880"
     volumes:
       - nodered_data:/data
     environment:
