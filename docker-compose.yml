@@ -99,21 +99,54 @@ services:
         NGINX
         
         # Download UI from GitHub if not present (check .installed marker)
-        if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/.installed ]; then
-          echo "=== Downloading Worker UI ==="
+        echo "=== Worker UI Startup ==="
+        echo "GITHUB_REPO: $$GITHUB_REPO"
+        echo ".installed exists: $$([ -f /usr/share/nginx/html/.installed ] && echo yes || echo no)"
+        
+        if [ ! -f /usr/share/nginx/html/.installed ]; then
+          echo "=== Installing Worker UI ==="
           rm -rf /usr/share/nginx/html/*
-          apk add --no-cache wget
-          cd /tmp
-          wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
-          if [ -f repo.tar.gz ]; then
-            tar -xzf repo.tar.gz
-            REPO_DIR=$$(ls -d */ | head -1)
-            if [ -d "$$REPO_DIR/public/worker" ]; then
-              cp -r "$$REPO_DIR/public/worker/"* /usr/share/nginx/html/
-              touch /usr/share/nginx/html/.installed
-              echo "✓ Worker UI installed"
+          
+          if [ -n "$$GITHUB_REPO" ]; then
+            apk add --no-cache wget
+            cd /tmp
+            echo "Downloading from: https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz"
+            wget -v "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz 2>&1
+            
+            if [ -f repo.tar.gz ] && [ -s repo.tar.gz ]; then
+              tar -xzf repo.tar.gz
+              REPO_DIR=$$(ls -d */ | head -1)
+              echo "Extracted to: $$REPO_DIR"
+              echo "Looking for: $$REPO_DIR/public/worker"
+              ls -la "$$REPO_DIR/public/" 2>/dev/null || echo "public/ not found"
+              
+              if [ -d "$$REPO_DIR/public/worker" ]; then
+                cp -r "$$REPO_DIR/public/worker/"* /usr/share/nginx/html/
+                touch /usr/share/nginx/html/.installed
+                echo "✓ Worker UI installed successfully"
+              else
+                echo "✗ Worker UI folder not found in repo"
+              fi
+              rm -rf /tmp/*
+            else
+              echo "✗ Download failed or empty file"
             fi
-            rm -rf /tmp/*
+          else
+            echo "✗ GITHUB_REPO not set"
+          fi
+          
+          # Fallback: create debug page if installation failed
+          if [ ! -f /usr/share/nginx/html/index.html ]; then
+            echo "Creating fallback debug page..."
+            cat > /usr/share/nginx/html/index.html << 'HTML'
+        <!DOCTYPE html>
+        <html><head><title>Worker UI - Not Installed</title></head>
+        <body style="font-family:monospace;padding:2rem;">
+        <h1>Worker UI Installation Failed</h1>
+        <p>Check container logs: <code>docker logs infokiosk-worker</code></p>
+        <p>Ensure GITHUB_REPO environment variable is set correctly.</p>
+        </body></html>
+        HTML
           fi
         fi
         exec nginx -g 'daemon off;'
@@ -166,21 +199,54 @@ services:
         NGINX
         
         # Download UI from GitHub if not present (check .installed marker)
-        if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/.installed ]; then
-          echo "=== Downloading Admin UI ==="
+        echo "=== Admin UI Startup ==="
+        echo "GITHUB_REPO: $$GITHUB_REPO"
+        echo ".installed exists: $$([ -f /usr/share/nginx/html/.installed ] && echo yes || echo no)"
+        
+        if [ ! -f /usr/share/nginx/html/.installed ]; then
+          echo "=== Installing Admin UI ==="
           rm -rf /usr/share/nginx/html/*
-          apk add --no-cache wget
-          cd /tmp
-          wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
-          if [ -f repo.tar.gz ]; then
-            tar -xzf repo.tar.gz
-            REPO_DIR=$$(ls -d */ | head -1)
-            if [ -d "$$REPO_DIR/public/admin" ]; then
-              cp -r "$$REPO_DIR/public/admin/"* /usr/share/nginx/html/
-              touch /usr/share/nginx/html/.installed
-              echo "✓ Admin UI installed"
+          
+          if [ -n "$$GITHUB_REPO" ]; then
+            apk add --no-cache wget
+            cd /tmp
+            echo "Downloading from: https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz"
+            wget -v "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz 2>&1
+            
+            if [ -f repo.tar.gz ] && [ -s repo.tar.gz ]; then
+              tar -xzf repo.tar.gz
+              REPO_DIR=$$(ls -d */ | head -1)
+              echo "Extracted to: $$REPO_DIR"
+              echo "Looking for: $$REPO_DIR/public/admin"
+              ls -la "$$REPO_DIR/public/" 2>/dev/null || echo "public/ not found"
+              
+              if [ -d "$$REPO_DIR/public/admin" ]; then
+                cp -r "$$REPO_DIR/public/admin/"* /usr/share/nginx/html/
+                touch /usr/share/nginx/html/.installed
+                echo "✓ Admin UI installed successfully"
+              else
+                echo "✗ Admin UI folder not found in repo"
+              fi
+              rm -rf /tmp/*
+            else
+              echo "✗ Download failed or empty file"
             fi
-            rm -rf /tmp/*
+          else
+            echo "✗ GITHUB_REPO not set"
+          fi
+          
+          # Fallback: create debug page if installation failed
+          if [ ! -f /usr/share/nginx/html/index.html ]; then
+            echo "Creating fallback debug page..."
+            cat > /usr/share/nginx/html/index.html << 'HTML'
+        <!DOCTYPE html>
+        <html><head><title>Admin UI - Not Installed</title></head>
+        <body style="font-family:monospace;padding:2rem;">
+        <h1>Admin UI Installation Failed</h1>
+        <p>Check container logs: <code>docker logs infokiosk-admin</code></p>
+        <p>Ensure GITHUB_REPO environment variable is set correctly.</p>
+        </body></html>
+        HTML
           fi
         fi
         exec nginx -g 'daemon off;'
@@ -233,21 +299,54 @@ services:
         NGINX
         
         # Download UI from GitHub if not present (check .installed marker)
-        if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/.installed ]; then
-          echo "=== Downloading Board UI ==="
+        echo "=== Board UI Startup ==="
+        echo "GITHUB_REPO: $$GITHUB_REPO"
+        echo ".installed exists: $$([ -f /usr/share/nginx/html/.installed ] && echo yes || echo no)"
+        
+        if [ ! -f /usr/share/nginx/html/.installed ]; then
+          echo "=== Installing Board UI ==="
           rm -rf /usr/share/nginx/html/*
-          apk add --no-cache wget
-          cd /tmp
-          wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
-          if [ -f repo.tar.gz ]; then
-            tar -xzf repo.tar.gz
-            REPO_DIR=$$(ls -d */ | head -1)
-            if [ -d "$$REPO_DIR/public/board" ]; then
-              cp -r "$$REPO_DIR/public/board/"* /usr/share/nginx/html/
-              touch /usr/share/nginx/html/.installed
-              echo "✓ Board UI installed"
+          
+          if [ -n "$$GITHUB_REPO" ]; then
+            apk add --no-cache wget
+            cd /tmp
+            echo "Downloading from: https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz"
+            wget -v "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz 2>&1
+            
+            if [ -f repo.tar.gz ] && [ -s repo.tar.gz ]; then
+              tar -xzf repo.tar.gz
+              REPO_DIR=$$(ls -d */ | head -1)
+              echo "Extracted to: $$REPO_DIR"
+              echo "Looking for: $$REPO_DIR/public/board"
+              ls -la "$$REPO_DIR/public/" 2>/dev/null || echo "public/ not found"
+              
+              if [ -d "$$REPO_DIR/public/board" ]; then
+                cp -r "$$REPO_DIR/public/board/"* /usr/share/nginx/html/
+                touch /usr/share/nginx/html/.installed
+                echo "✓ Board UI installed successfully"
+              else
+                echo "✗ Board UI folder not found in repo"
+              fi
+              rm -rf /tmp/*
+            else
+              echo "✗ Download failed or empty file"
             fi
-            rm -rf /tmp/*
+          else
+            echo "✗ GITHUB_REPO not set"
+          fi
+          
+          # Fallback: create debug page if installation failed
+          if [ ! -f /usr/share/nginx/html/index.html ]; then
+            echo "Creating fallback debug page..."
+            cat > /usr/share/nginx/html/index.html << 'HTML'
+        <!DOCTYPE html>
+        <html><head><title>Board UI - Not Installed</title></head>
+        <body style="font-family:monospace;padding:2rem;">
+        <h1>Board UI Installation Failed</h1>
+        <p>Check container logs: <code>docker logs infokiosk-board</code></p>
+        <p>Ensure GITHUB_REPO environment variable is set correctly.</p>
+        </body></html>
+        HTML
           fi
         fi
         exec nginx -g 'daemon off;'
