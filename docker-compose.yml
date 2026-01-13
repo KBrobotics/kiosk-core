@@ -61,17 +61,47 @@ services:
     ports:
       - "8003:80"
     volumes:
-      - worker_html:/usr/share/nginx/html:ro
-      - ./nginx-worker.conf:/etc/nginx/conf.d/default.conf:ro
+      - worker_html:/usr/share/nginx/html
     environment:
       - GITHUB_REPO=${GITHUB_REPO:-}
     entrypoint: /bin/sh
     command:
       - -c
       - |
+        # Create nginx config with reverse proxy
+        cat > /etc/nginx/conf.d/default.conf << 'NGINX'
+        server {
+            listen 80;
+            server_name localhost;
+            root /usr/share/nginx/html;
+            index index.html;
+
+            location /api/ {
+                proxy_pass http://infokiosk-api:1880/api/;
+                proxy_http_version 1.1;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+            }
+
+            location /ws {
+                proxy_pass http://infokiosk-api:1880/ws;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $$http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $$host;
+                proxy_read_timeout 86400;
+            }
+
+            location / {
+                try_files $$uri $$uri/ /index.html;
+            }
+        }
+        NGINX
+        
         # Download UI from GitHub if not present
         if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/index.html ]; then
           echo "=== Downloading Worker UI ==="
+          apk add --no-cache wget
           cd /tmp
           wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
           if [ -f repo.tar.gz ]; then
@@ -96,17 +126,47 @@ services:
     ports:
       - "8004:80"
     volumes:
-      - admin_html:/usr/share/nginx/html:ro
-      - ./nginx-admin.conf:/etc/nginx/conf.d/default.conf:ro
+      - admin_html:/usr/share/nginx/html
     environment:
       - GITHUB_REPO=${GITHUB_REPO:-}
     entrypoint: /bin/sh
     command:
       - -c
       - |
+        # Create nginx config with reverse proxy
+        cat > /etc/nginx/conf.d/default.conf << 'NGINX'
+        server {
+            listen 80;
+            server_name localhost;
+            root /usr/share/nginx/html;
+            index index.html;
+
+            location /api/ {
+                proxy_pass http://infokiosk-api:1880/api/;
+                proxy_http_version 1.1;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+            }
+
+            location /ws {
+                proxy_pass http://infokiosk-api:1880/ws;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $$http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $$host;
+                proxy_read_timeout 86400;
+            }
+
+            location / {
+                try_files $$uri $$uri/ /index.html;
+            }
+        }
+        NGINX
+        
         # Download UI from GitHub if not present
         if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/index.html ]; then
           echo "=== Downloading Admin UI ==="
+          apk add --no-cache wget
           cd /tmp
           wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
           if [ -f repo.tar.gz ]; then
@@ -131,17 +191,47 @@ services:
     ports:
       - "8005:80"
     volumes:
-      - board_html:/usr/share/nginx/html:ro
-      - ./nginx-board.conf:/etc/nginx/conf.d/default.conf:ro
+      - board_html:/usr/share/nginx/html
     environment:
       - GITHUB_REPO=${GITHUB_REPO:-}
     entrypoint: /bin/sh
     command:
       - -c
       - |
+        # Create nginx config with reverse proxy
+        cat > /etc/nginx/conf.d/default.conf << 'NGINX'
+        server {
+            listen 80;
+            server_name localhost;
+            root /usr/share/nginx/html;
+            index index.html;
+
+            location /api/ {
+                proxy_pass http://infokiosk-api:1880/api/;
+                proxy_http_version 1.1;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Real-IP $$remote_addr;
+            }
+
+            location /ws {
+                proxy_pass http://infokiosk-api:1880/ws;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $$http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_set_header Host $$host;
+                proxy_read_timeout 86400;
+            }
+
+            location / {
+                try_files $$uri $$uri/ /index.html;
+            }
+        }
+        NGINX
+        
         # Download UI from GitHub if not present
         if [ -n "$$GITHUB_REPO" ] && [ ! -f /usr/share/nginx/html/index.html ]; then
           echo "=== Downloading Board UI ==="
+          apk add --no-cache wget
           cd /tmp
           wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
           if [ -f repo.tar.gz ]; then
