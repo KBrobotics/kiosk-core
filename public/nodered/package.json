@@ -1,8 +1,0 @@
-{
-  "name": "infokiosk-nodered",
-  "description": "InfoKiosk Node-RED flows with MySQL support",
-  "version": "1.0.0",
-  "dependencies": {
-    "node-red-node-mysql": "^1.0.3"
-  }
-}

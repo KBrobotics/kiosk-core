@@ -1,46 +1,24 @@
 version: '3.8'
 
 # InfoKiosk - Raspberry Pi
-# Complete self-contained deployment
-# Deploy via Portainer: Stacks → Add → Repository (point to this repo)
-# 
-# IMPORTANT: Clone the repo to /home/pi/infokiosk first:
-#   cd /home/pi && git clone <repo-url> infokiosk
-# Then in Portainer, use the Repository build method pointing to the cloned folder
+# Deploy via Portainer: Stacks → Add → Upload
 
 services:
   nodered:
-    image: nodered/node-red:latest
+    image: nodered/node-red
     container_name: infokiosk
     restart: unless-stopped
     ports:
       - "8002:1880"
     volumes:
-      # Persistent data
       - nodered_data:/data
-      # Node-RED configuration and flows (read-only)
-      - ./public/nodered/package.json:/data/package.json:ro
-      - ./public/nodered/settings.js:/data/settings.js:ro
-      - ./public/nodered/infokiosk-flows.json:/data/flows.json:ro
-      # Static dashboards (read-only)
-      - ./public/worker:/data/static/worker:ro
-      - ./public/admin:/data/static/admin:ro
     environment:
       - TZ=Europe/Warsaw
-      # Wait for MariaDB to be ready
-      - NODE_RED_ENABLE_PROJECTS=false
     depends_on:
-      mariadb:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1880"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      - mariadb
 
   mariadb:
-    image: yobasystems/alpine-mariadb:latest
+    image: yobasystems/alpine-mariadb
     container_name: infokiosk-db
     restart: unless-stopped
     environment:
@@ -50,12 +28,6 @@ services:
       MYSQL_PASSWORD: infokiosk_pass
     volumes:
       - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pinfokiosk_root"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
 volumes:
   nodered_data:

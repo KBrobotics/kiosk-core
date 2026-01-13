@@ -32,13 +32,11 @@
     "id": "config-mysql",
     "type": "MySQLdatabase",
     "name": "infokiosk-db",
-    "host": "infokiosk-db",
+    "host": "127.0.0.1",
     "port": "3306",
     "db": "infokiosk",
     "tz": "",
-    "charset": "UTF8",
-    "user": "infokiosk",
-    "password": "infokiosk_pass"
+    "charset": "UTF8"
   },
 
   {
