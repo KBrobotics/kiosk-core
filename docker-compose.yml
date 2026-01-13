@@ -1,11 +1,12 @@
 version: '3.8'
 
-# InfoKiosk - Raspberry Pi ARM64/ARM32 Compatible
-# Deploy via Portainer or: docker-compose up -d
+# InfoKiosk - Raspberry Pi (ARM32/ARM64)
+# Deploy via Portainer: Stacks → Add → Upload
 
 services:
   nodered:
-    image: nodered/node-red:latest-minimal
+    image: nodered/node-red:3.1.9
+    platform: linux/arm/v7
     container_name: infokiosk
     restart: unless-stopped
     ports:
@@ -21,16 +22,20 @@ services:
       - mariadb
 
   mariadb:
-    image: mariadb:10.11
+    image: linuxserver/mariadb:10.11.8
+    platform: linux/arm/v7
     container_name: infokiosk-db
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: infokiosk_root
-      MARIADB_DATABASE: infokiosk
-      MARIADB_USER: infokiosk
-      MARIADB_PASSWORD: infokiosk_pass
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Warsaw
+      MYSQL_ROOT_PASSWORD: infokiosk_root
+      MYSQL_DATABASE: infokiosk
+      MYSQL_USER: infokiosk
+      MYSQL_PASSWORD: infokiosk_pass
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - mariadb_data:/config
 
 volumes:
   nodered_data:
