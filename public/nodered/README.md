@@ -22,7 +22,6 @@ docker restart infokiosk
    - Open `http://<PI_IP>:1880`
    - Menu → Import → Upload `public/nodered/infokiosk-flows.json`
    - Configure MySQL node: host=`infokiosk-db`, user=`infokiosk`, pass=`infokiosk_pass`, db=`infokiosk`
-   - Deploy
 
 5. **Access:**
    - Worker Kiosk: `http://<PI_IP>:1880/worker`

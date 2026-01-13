@@ -5,7 +5,7 @@ version: '3.8'
 
 services:
   nodered:
-    image: nodered/node-red:latest
+    image: nodered/node-red:latest-minimal
     container_name: infokiosk
     restart: unless-stopped
     ports:
@@ -17,33 +17,21 @@ services:
       - ./public/admin:/data/static/admin:ro
     environment:
       - TZ=Europe/Warsaw
-      - NODE_RED_ENABLE_PROJECTS=false
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:1880"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    # ARM compatible - works on Raspberry Pi 3/4/5
+    depends_on:
+      - mariadb
 
-  mysql:
-    image: mysql:8.0
+  mariadb:
+    image: mariadb:10.11
     container_name: infokiosk-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: infokiosk_root
-      MYSQL_DATABASE: infokiosk
-      MYSQL_USER: infokiosk
-      MYSQL_PASSWORD: infokiosk_pass
+      MARIADB_ROOT_PASSWORD: infokiosk_root
+      MARIADB_DATABASE: infokiosk
+      MARIADB_USER: infokiosk
+      MARIADB_PASSWORD: infokiosk_pass
     volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    # Note: mysql:8.0 supports ARM64 (Pi 4/5)
-    # For Pi 3 (ARM32), use: image: hypriot/rpi-mysql
+      - mariadb_data:/var/lib/mysql
 
 volumes:
   nodered_data:
-  mysql_data:
+  mariadb_data:
