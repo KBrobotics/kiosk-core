@@ -20,38 +20,42 @@ services:
     command:
       - -c
       - |
-        # Download static files from GitHub on first run
+        # Install MySQL node if not present
+        if [ ! -d /data/node_modules/node-red-node-mysql ]; then
+          echo "=== Installing MySQL node ==="
+          cd /data && npm install node-red-node-mysql
+        fi
+        
+        # Download and setup from GitHub on first run
         if [ -n "$$GITHUB_REPO" ] && [ ! -f /data/static/.installed ]; then
-          echo "=== Downloading static files from GitHub ==="
+          echo "=== Downloading from GitHub ==="
           mkdir -p /data/static
           cd /tmp
           wget -q "https://github.com/$$GITHUB_REPO/archive/refs/heads/main.tar.gz" -O repo.tar.gz
           if [ -f repo.tar.gz ]; then
             tar -xzf repo.tar.gz
             REPO_DIR=$$(ls -d */ | head -1)
-            if [ -d "$$REPO_DIR/public/worker" ]; then
-              cp -r "$$REPO_DIR/public/worker" /data/static/
-              echo "✓ Worker UI installed"
+            
+            # Copy static UIs
+            for UI in worker admin board; do
+              if [ -d "$$REPO_DIR/public/$$UI" ]; then
+                cp -r "$$REPO_DIR/public/$$UI" /data/static/
+                echo "✓ $$UI UI installed"
+              fi
+            done
+            
+            # CRITICAL: Import flows and fix MySQL host for Docker
+            if [ -f "$$REPO_DIR/public/nodered/infokiosk-flows.json" ]; then
+              sed 's/127.0.0.1/infokiosk-db/g' "$$REPO_DIR/public/nodered/infokiosk-flows.json" > /data/flows.json
+              echo "✓ Node-RED flows imported"
             fi
-            if [ -d "$$REPO_DIR/public/admin" ]; then
-              cp -r "$$REPO_DIR/public/admin" /data/static/
-              echo "✓ Admin UI installed"
-            fi
-            if [ -d "$$REPO_DIR/public/board" ]; then
-              cp -r "$$REPO_DIR/public/board" /data/static/
-              echo "✓ Board UI installed"
-            fi
-            if [ -d "$$REPO_DIR/public/nodered" ]; then
-              cp -r "$$REPO_DIR/public/nodered" /data/static/
-              echo "✓ Node-RED flows installed"
-            fi
+            
             touch /data/static/.installed
-            echo "=== Static files installed successfully ==="
+            echo "=== Installation complete ==="
             rm -rf /tmp/*
-          else
-            echo "✗ Failed to download from GitHub"
           fi
         fi
+        
         # Start Node-RED
         exec node-red
     depends_on:
